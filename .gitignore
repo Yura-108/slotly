@@ -1,0 +1,36 @@
+# Dependencies
+node_modules/
+
+# Build output
+dist/
+build/
+.next/
+out/
+*.tsbuildinfo
+
+# Environment — only the example is committed
+.env
+.env.*
+!.env.example
+
+# Test and coverage
+coverage/
+
+# Logs
+*.log
+npm-debug.log*
+pnpm-debug.log*
+
+# OS / editors
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/*
+!.vscode/extensions.json
+!.vscode/settings.json
+
+# Claude Code local settings
+.claude/settings.local.json
+
+# Concept Loom personal learning state (lives on disk, not in the product repo)
+.concept-loom/

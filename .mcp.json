@@ -1,0 +1,8 @@
+{
+  "mcpServers": {
+    "concept-loom": {
+      "command": "node",
+      "args": ["D:/programming/ConceptLoom/src/bridge.mjs"]
+    }
+  }
+}
