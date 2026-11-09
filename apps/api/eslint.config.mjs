@@ -23,7 +23,7 @@ export default defineConfig(
     },
   },
   {
-    files: ['src/infrastructure/config/**', '*.config.mts'],
+    files: ['src/infrastructure/config/**', '*.config.ts', '*.config.mts'],
     rules: { 'no-restricted-properties': 'off' },
   },
   {

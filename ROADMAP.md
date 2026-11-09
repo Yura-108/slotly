@@ -25,7 +25,7 @@
 2. ✅ pnpm workspace, TypeScript, Prettier.
 3. ✅ Docker Compose: PostgreSQL 18, Mailpit.
 4. ✅ Каркас `apps/api`: конфигурация, логирование, БД, health check.
-5. Прототип: exclusion constraint, `23P01`, тест конкурентного бронирования (подтверждает ADR-003/004).
+5. ✅ Прототип: exclusion constraint, `23P01`, тест конкурентного бронирования — [ADR-003](docs/adr/003-double-booking-protection.md) принят; найден и устранён deadlock при конкурентных вставках.
 6. Каркас `apps/web`: rewrites `/api/*`, проверка `__Host-` cookie (подтверждает ADR-005).
 7. Процесс: границы модулей, pre-commit, шаблон PR, GitHub.
 

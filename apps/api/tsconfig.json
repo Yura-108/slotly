@@ -10,5 +10,5 @@
     "outDir": "dist",
     "sourceMap": true
   },
-  "include": ["src", "*.config.mts"]
+  "include": ["src", "*.config.ts", "*.config.mts"]
 }
