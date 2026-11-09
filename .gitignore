@@ -34,3 +34,6 @@ Thumbs.db
 
 # Concept Loom personal learning state (lives on disk, not in the product repo)
 .concept-loom/
+
+# Next.js generated types
+next-env.d.ts

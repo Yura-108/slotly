@@ -26,7 +26,7 @@
 3. ✅ Docker Compose: PostgreSQL 18, Mailpit.
 4. ✅ Каркас `apps/api`: конфигурация, логирование, БД, health check.
 5. ✅ Прототип: exclusion constraint, `23P01`, тест конкурентного бронирования — [ADR-003](docs/adr/003-double-booking-protection.md) принят; найден и устранён deadlock при конкурентных вставках.
-6. Каркас `apps/web`: rewrites `/api/*`, проверка `__Host-` cookie (подтверждает ADR-005).
+6. ✅ Каркас `apps/web`: rewrites `/api/*`, `__Host-` cookie через прокси на localhost подтверждена — [ADR-005](docs/adr/005-authentication-sessions.md), «Результаты прототипа».
 7. Процесс: границы модулей, pre-commit, шаблон PR, GitHub.
 
 ## Отложенные задачи
@@ -34,6 +34,9 @@
 - Переход на Node 26 — начало 2027.
 - Переход на NestJS 12 и ESM в api — после поддержки NestJS 12 в nestjs-zod.
 - Переход на TypeScript 7 — после поддержки в typescript-eslint, NestJS CLI и Next.js.
+- ESLint 10 в `apps/web` — после поддержки в `eslint-config-next` (сейчас её плагины `eslint-plugin-react`, `-import`, `-jsx-a11y` объявляют ESLint до 9; web на ESLint 9.39, api — на 10).
+- Этап 5 (rate limit): передать адрес клиента через прокси Next.js — сейчас API видит адрес сервера Next.js (ADR-005, «Результаты прототипа»).
+- Этап 9: адрес API в rewrites фиксируется при `next build` — выбрать сборку на окружение или `proxy.ts` с адресом во время выполнения.
 
 Архитектура (этап 3) — завершена 2026-11-09:
 

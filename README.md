@@ -47,6 +47,15 @@ cp apps/api/.env.example apps/api/.env
 pnpm --filter @slotly/api dev       # http://localhost:4000/health
 ```
 
+### web
+
+```bash
+cp apps/web/.env.example apps/web/.env
+pnpm --filter @slotly/web dev       # http://localhost:3000, /api/* проксируется в api
+```
+
+Адрес api (`API_INTERNAL_URL`) фиксируется при `next build`: после его смены сборку нужно повторить.
+
 ## Команды
 
 | Команда                                 | Что делает                          |
@@ -54,7 +63,6 @@ pnpm --filter @slotly/api dev       # http://localhost:4000/health
 | `pnpm lint` / `typecheck` / `test`      | проверки во всех пакетах            |
 | `pnpm format` / `format:check`          | Prettier                            |
 | `pnpm --filter @slotly/api dev`         | api с hot reload                    |
+| `pnpm --filter @slotly/web dev`         | web с hot reload                    |
 | `pnpm --filter @slotly/api db:generate` | сгенерировать SQL-миграцию по схеме |
 | `pnpm --filter @slotly/api db:migrate`  | применить миграции                  |
-
-_Запуск web появится по мере настройки этапа 4._
