@@ -1,0 +1,6 @@
+packages:
+  - apps/*
+  - packages/*
+
+# Pin exact versions: upgrades are deliberate, separate changes (ADR-004)
+saveExact: true

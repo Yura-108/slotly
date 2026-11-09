@@ -16,30 +16,30 @@
 
 ## 2. Эндпоинты (MVP)
 
-| Метод и путь | Доступ | Назначение |
-| --- | --- | --- |
-| `POST /auth/register` | гость | регистрация; одинаковый ответ для нового и существующего email |
-| `POST /auth/login` | гость | вход, установка cookie |
-| `POST /auth/logout` | пользователь | удаление сессии |
-| `POST /auth/verify-email` | гость | подтверждение по токену из письма |
-| `POST /auth/password-reset/request` | гость | одинаковый ответ для любого email |
-| `POST /auth/password-reset/confirm` | гость | новый пароль по токену; удаляет все сессии |
-| `GET /me`, `PATCH /me` | пользователь | профиль, часовой пояс |
-| `POST /me/specialist-profile`, `PATCH /me/specialist-profile` | подтверждённый email | включить/изменить профиль специалиста и настройки |
-| `GET /me/services`, `POST /me/services` | специалист | услуги, включая архивные |
-| `PATCH /me/services/{id}`, `POST /me/services/{id}/archive` | специалист | изменить / архивировать |
-| `GET /me/availability`, `PUT /me/availability` | специалист | недельное расписание целиком (атомарная замена) |
-| `GET /me/days-off`, `POST /me/days-off`, `DELETE /me/days-off/{id}` | специалист | выходные |
-| `GET /me/bookings?as=client\|specialist&scope=upcoming\|past&status=` | пользователь | списки броней |
-| `GET /specialists/{slug}` | все | публичный профиль |
-| `GET /specialists/{slug}/services` | все | активные услуги |
-| `GET /specialists/{slug}/slots?serviceId=&from=&to=` | все | свободные слоты; диапазон ≤ 31 дня |
-| `POST /bookings` | подтверждённый email | создать бронь `{ serviceId, startAt }` |
-| `GET /bookings/{id}` | клиент или специалист брони | детали |
-| `POST /bookings/{id}/confirm` | специалист брони | `pending → confirmed` |
-| `POST /bookings/{id}/reject` | специалист брони | `pending → rejected`, `{ reason? }` |
-| `POST /bookings/{id}/cancel` | клиент или специалист брони | `→ cancelled`, `{ reason? }` |
-| `GET /health` | все | health check |
+| Метод и путь                                                          | Доступ                      | Назначение                                                     |
+| --------------------------------------------------------------------- | --------------------------- | -------------------------------------------------------------- |
+| `POST /auth/register`                                                 | гость                       | регистрация; одинаковый ответ для нового и существующего email |
+| `POST /auth/login`                                                    | гость                       | вход, установка cookie                                         |
+| `POST /auth/logout`                                                   | пользователь                | удаление сессии                                                |
+| `POST /auth/verify-email`                                             | гость                       | подтверждение по токену из письма                              |
+| `POST /auth/password-reset/request`                                   | гость                       | одинаковый ответ для любого email                              |
+| `POST /auth/password-reset/confirm`                                   | гость                       | новый пароль по токену; удаляет все сессии                     |
+| `GET /me`, `PATCH /me`                                                | пользователь                | профиль, часовой пояс                                          |
+| `POST /me/specialist-profile`, `PATCH /me/specialist-profile`         | подтверждённый email        | включить/изменить профиль специалиста и настройки              |
+| `GET /me/services`, `POST /me/services`                               | специалист                  | услуги, включая архивные                                       |
+| `PATCH /me/services/{id}`, `POST /me/services/{id}/archive`           | специалист                  | изменить / архивировать                                        |
+| `GET /me/availability`, `PUT /me/availability`                        | специалист                  | недельное расписание целиком (атомарная замена)                |
+| `GET /me/days-off`, `POST /me/days-off`, `DELETE /me/days-off/{id}`   | специалист                  | выходные                                                       |
+| `GET /me/bookings?as=client\|specialist&scope=upcoming\|past&status=` | пользователь                | списки броней                                                  |
+| `GET /specialists/{slug}`                                             | все                         | публичный профиль                                              |
+| `GET /specialists/{slug}/services`                                    | все                         | активные услуги                                                |
+| `GET /specialists/{slug}/slots?serviceId=&from=&to=`                  | все                         | свободные слоты; диапазон ≤ 31 дня                             |
+| `POST /bookings`                                                      | подтверждённый email        | создать бронь `{ serviceId, startAt }`                         |
+| `GET /bookings/{id}`                                                  | клиент или специалист брони | детали                                                         |
+| `POST /bookings/{id}/confirm`                                         | специалист брони            | `pending → confirmed`                                          |
+| `POST /bookings/{id}/reject`                                          | специалист брони            | `pending → rejected`, `{ reason? }`                            |
+| `POST /bookings/{id}/cancel`                                          | клиент или специалист брони | `→ cancelled`, `{ reason? }`                                   |
+| `GET /health`                                                         | все                         | health check                                                   |
 
 ## 3. Ошибки — RFC 9457 Problem Details
 
@@ -66,16 +66,16 @@
 
 Выполняется в одном глобальном exception filter.
 
-| Класс ошибки | HTTP | Примеры `code` |
-| --- | --- | --- |
-| `ValidationError` | 400 | `VALIDATION_FAILED` |
-| `UnauthenticatedError` | 401 | `UNAUTHENTICATED`, `INVALID_CREDENTIALS` |
-| `ForbiddenError` | 403 | `EMAIL_NOT_VERIFIED`, `SPECIALIST_PROFILE_REQUIRED`, `ORIGIN_NOT_ALLOWED` |
-| `NotFoundError` | 404 | `NOT_FOUND` (в том числе чужой ресурс) |
-| `ConflictError` | 409 | `BOOKING_SLOT_TAKEN`, `BOOKING_STATUS_CHANGED`, `SLUG_TAKEN` |
-| `BusinessRuleError` | 422 | `CANCEL_DEADLINE_PASSED`, `PENDING_LIMIT_REACHED`, `SLOT_NOT_AVAILABLE`, `CANNOT_BOOK_SELF`, `TOKEN_INVALID_OR_EXPIRED` |
-| rate limit | 429 | `RATE_LIMITED` (+ `Retry-After`) |
-| прочее | 500 | `INTERNAL_ERROR` |
+| Класс ошибки           | HTTP | Примеры `code`                                                                                                          |
+| ---------------------- | ---- | ----------------------------------------------------------------------------------------------------------------------- |
+| `ValidationError`      | 400  | `VALIDATION_FAILED`                                                                                                     |
+| `UnauthenticatedError` | 401  | `UNAUTHENTICATED`, `INVALID_CREDENTIALS`                                                                                |
+| `ForbiddenError`       | 403  | `EMAIL_NOT_VERIFIED`, `SPECIALIST_PROFILE_REQUIRED`, `ORIGIN_NOT_ALLOWED`                                               |
+| `NotFoundError`        | 404  | `NOT_FOUND` (в том числе чужой ресурс)                                                                                  |
+| `ConflictError`        | 409  | `BOOKING_SLOT_TAKEN`, `BOOKING_STATUS_CHANGED`, `SLUG_TAKEN`                                                            |
+| `BusinessRuleError`    | 422  | `CANCEL_DEADLINE_PASSED`, `PENDING_LIMIT_REACHED`, `SLOT_NOT_AVAILABLE`, `CANNOT_BOOK_SELF`, `TOKEN_INVALID_OR_EXPIRED` |
+| rate limit             | 429  | `RATE_LIMITED` (+ `Retry-After`)                                                                                        |
+| прочее                 | 500  | `INTERNAL_ERROR`                                                                                                        |
 
 Принципы выбора:
 
@@ -84,11 +84,11 @@
 
 ## 4. Валидация
 
-| Уровень | Что | Где |
-| --- | --- | --- |
+| Уровень      | Что                               | Где                                                                         |
+| ------------ | --------------------------------- | --------------------------------------------------------------------------- |
 | Граница HTTP | форма: типы, длины, enum, форматы | Zod-схемы DTO (`createZodDto`), глобальный `ZodValidationPipe` (nestjs-zod) |
-| Домен | бизнес-правила | доменные функции и сервисы |
-| БД | инварианты | ограничения ([data-model.md](data-model.md)) |
+| Домен        | бизнес-правила                    | доменные функции и сервисы                                                  |
+| БД           | инварианты                        | ограничения ([data-model.md](data-model.md))                                |
 
 Frontend-валидация — только для UX; источник истины — API.
 

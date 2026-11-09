@@ -12,13 +12,13 @@
 
 ## Документация
 
-| Документ | Содержание |
-| --- | --- |
-| [docs/discovery.md](docs/discovery.md) | проблема, пользователи, аналоги, границы продукта |
-| [docs/requirements.md](docs/requirements.md) | требования, MVP, жизненный цикл брони |
-| [docs/architecture/](docs/architecture/) | модель данных, backend, API, frontend, логирование и конфигурация |
-| [docs/adr/](docs/adr/README.md) | архитектурные решения |
-| [docs/learning-log.md](docs/learning-log.md) | журнал обучения |
+| Документ                                     | Содержание                                                        |
+| -------------------------------------------- | ----------------------------------------------------------------- |
+| [docs/discovery.md](docs/discovery.md)       | проблема, пользователи, аналоги, границы продукта                 |
+| [docs/requirements.md](docs/requirements.md) | требования, MVP, жизненный цикл брони                             |
+| [docs/architecture/](docs/architecture/)     | модель данных, backend, API, frontend, логирование и конфигурация |
+| [docs/adr/](docs/adr/README.md)              | архитектурные решения                                             |
+| [docs/learning-log.md](docs/learning-log.md) | журнал обучения                                                   |
 
 ## Требования к окружению
 
