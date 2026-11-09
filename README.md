@@ -28,4 +28,16 @@
 
 ## Локальный запуск
 
-_Появится по мере настройки этапа 4._
+```bash
+pnpm install
+docker compose up -d --wait   # PostgreSQL 18 (localhost:5433) и Mailpit
+```
+
+| Сервис     | Адрес                                                              |
+| ---------- | ------------------------------------------------------------------ |
+| PostgreSQL | `postgres://slotly:slotly@localhost:5433/slotly` (только локально) |
+| Mailpit UI | http://localhost:8025 — письма, отправленные приложением           |
+
+Остановить инфраструктуру: `docker compose down` (данные БД сохраняются в volume; `docker compose down -v` удаляет их).
+
+_Запуск api и web появится по мере настройки этапа 4._
