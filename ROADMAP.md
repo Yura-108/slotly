@@ -4,22 +4,24 @@
 
 Легенда: ✅ готово · 🔄 в работе · ⏳ не начато
 
-| #   | Этап                                                                | Статус | Результат                                                                 |
-| --- | ------------------------------------------------------------------- | ------ | ------------------------------------------------------------------------- |
-| 1   | Discovery: идея и предметная область                                | ✅     | [docs/discovery.md](docs/discovery.md)                                    |
-| 2   | Требования (функциональные, нефункциональные, MVP)                  | ✅     | [docs/requirements.md](docs/requirements.md)                              |
-| 3   | Архитектура и проектирование, ADR                                   | ✅     | [docs/architecture/](docs/architecture/), [docs/adr/](docs/adr/README.md) |
-| 4   | Организация разработки (репозиторий, линтеры, Docker, Git workflow) | 🔄     | —                                                                         |
-| 5   | Реализация vertical slices                                          | ⏳     | —                                                                         |
-| 6   | Тестирование и качество                                             | ⏳     | (сквозное, начинается с этапа 5)                                          |
-| 7   | Безопасность и надёжность                                           | ⏳     | (сквозное, начинается с этапа 3)                                          |
-| 8   | CI/CD                                                               | ⏳     | —                                                                         |
-| 9   | Production и эксплуатация                                           | ⏳     | —                                                                         |
-| 10  | Ретроспектива                                                       | ⏳     | —                                                                         |
+| #   | Этап                                                                | Статус | Результат                                                                                                        |
+| --- | ------------------------------------------------------------------- | ------ | ---------------------------------------------------------------------------------------------------------------- |
+| 1   | Discovery: идея и предметная область                                | ✅     | [docs/discovery.md](docs/discovery.md)                                                                           |
+| 2   | Требования (функциональные, нефункциональные, MVP)                  | ✅     | [docs/requirements.md](docs/requirements.md)                                                                     |
+| 3   | Архитектура и проектирование, ADR                                   | ✅     | [docs/architecture/](docs/architecture/), [docs/adr/](docs/adr/README.md)                                        |
+| 4   | Организация разработки (репозиторий, линтеры, Docker, Git workflow) | ✅     | [ADR-010](docs/adr/010-development-environment.md), [ADR-011](docs/adr/011-architecture-checks-and-git-hooks.md) |
+| 5   | Реализация vertical slices                                          | ⏳     | —                                                                                                                |
+| 6   | Тестирование и качество                                             | ⏳     | (сквозное, начинается с этапа 5)                                                                                 |
+| 7   | Безопасность и надёжность                                           | ⏳     | (сквозное, начинается с этапа 3)                                                                                 |
+| 8   | CI/CD                                                               | ⏳     | —                                                                                                                |
+| 9   | Production и эксплуатация                                           | ⏳     | —                                                                                                                |
+| 10  | Ретроспектива                                                       | ⏳     | —                                                                                                                |
 
 ## Текущий шаг
 
-Этап 4 — организация разработки ([ADR-010](docs/adr/010-development-environment.md)):
+Этап 5 — реализация vertical slices: план и первый срез (регистрация и вход) — следующий шаг.
+
+Этап 4 — организация разработки, завершён 2026-11-09 ([ADR-010](docs/adr/010-development-environment.md)):
 
 1. ✅ Основа репозитория, CLAUDE.md.
 2. ✅ pnpm workspace, TypeScript, Prettier.
@@ -27,7 +29,7 @@
 4. ✅ Каркас `apps/api`: конфигурация, логирование, БД, health check.
 5. ✅ Прототип: exclusion constraint, `23P01`, тест конкурентного бронирования — [ADR-003](docs/adr/003-double-booking-protection.md) принят; найден и устранён deadlock при конкурентных вставках.
 6. ✅ Каркас `apps/web`: rewrites `/api/*`, `__Host-` cookie через прокси на localhost подтверждена — [ADR-005](docs/adr/005-authentication-sessions.md), «Результаты прототипа».
-7. Процесс: границы модулей, pre-commit, шаблон PR, GitHub.
+7. ✅ Процесс: границы модулей (dependency-cruiser), pre-commit, шаблон PR, проверка заголовка PR, приватный репозиторий на GitHub — [ADR-011](docs/adr/011-architecture-checks-and-git-hooks.md).
 
 ## Отложенные задачи
 
@@ -59,3 +61,4 @@
 - 2026-11-09 — [ADR-004](docs/adr/004-orm-drizzle.md): ORM — Drizzle. Первая задача этапа 4 — прототип (exclusion constraint, `23P01`, тест конкурентного бронирования).
 - 2026-11-09 — Модель данных утверждена. [ADR-005](docs/adr/005-authentication-sessions.md): серверные сессии вместо JWT; rate limit в памяти — до появления второго экземпляра backend.
 - 2026-11-09 — ADR-006–009: прагматичные слои и ацикличные модули; REST + Problem Details + OpenAPI; nestjs-pino и env + Zod; frontend без Server Actions для изменений, `allowedActions` от API. Этап 3 завершён.
+- 2026-11-09 — Этап 4: ADR-003 и ADR-005 подтверждены прототипами; [ADR-010](docs/adr/010-development-environment.md) — окружение; [ADR-011](docs/adr/011-architecture-checks-and-git-hooks.md) — dependency-cruiser и pre-commit. Дальше — только через PR.

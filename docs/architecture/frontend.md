@@ -74,7 +74,7 @@ apps/web/src/
     lib/              время, форматирование
 ```
 
-- Фичи не импортируют друг друга напрямую; общее — в `shared`.
+- Фичи не импортируют друг друга напрямую; общее — в `shared`. Проверяется dependency-cruiser в `pnpm lint` (`apps/web/.dependency-cruiser.cjs`, [ADR-011](../adr/011-architecture-checks-and-git-hooks.md)).
 - Формы — react-hook-form + Zod.
 - Тексты интерфейса — на русском, собраны в одном месте в рамках фичи (готовность к i18n без самой i18n).
 - Страницы подтверждения email и сброса пароля читают токен из `location.hash` (ADR-008).

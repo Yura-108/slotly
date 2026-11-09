@@ -66,3 +66,9 @@ pnpm --filter @slotly/web dev       # http://localhost:3000, /api/* прокси
 | `pnpm --filter @slotly/web dev`         | web с hot reload                    |
 | `pnpm --filter @slotly/api db:generate` | сгенерировать SQL-миграцию по схеме |
 | `pnpm --filter @slotly/api db:migrate`  | применить миграции                  |
+
+## Процесс разработки
+
+- GitHub Flow: ветка от `main` → Pull Request → squash merge. Заголовок PR — в формате [Conventional Commits](https://www.conventionalcommits.org/) (`feat(bookings): …`), его проверяет CI.
+- `pnpm install` ставит pre-commit hook: Prettier и ESLint для staged-файлов.
+- `pnpm lint` проверяет и границы модулей (dependency-cruiser): см. [ADR-011](docs/adr/011-architecture-checks-and-git-hooks.md).

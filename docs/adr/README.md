@@ -4,15 +4,16 @@ ADR фиксирует значимое архитектурное решени�
 
 Шаблон: [template.md](template.md).
 
-| №                                             | Решение                                                                                 | Статус  | Дата       |
-| --------------------------------------------- | --------------------------------------------------------------------------------------- | ------- | ---------- |
-| [001](001-system-topology.md)                 | Топология: Next.js + NestJS API (модульный монолит) + PostgreSQL                        | Принято | 2026-11-09 |
-| [002](002-monorepo.md)                        | Монорепозиторий на pnpm workspaces                                                      | Принято | 2026-11-09 |
-| [003](003-double-booking-protection.md)       | Защита от двойного бронирования: exclusion constraint + истечение pending при записи    | Принято | 2026-11-09 |
-| [004](004-orm-drizzle.md)                     | ORM: Drizzle + drizzle-kit                                                              | Принято | 2026-11-09 |
-| [005](005-authentication-sessions.md)         | Аутентификация: серверные сессии в `__Host-` cookie, Argon2id                           | Принято | 2026-11-09 |
-| [006](006-backend-layers-and-modules.md)      | Backend: прагматичные слои, модули с владением таблицами, ацикличные зависимости        | Принято | 2026-11-09 |
-| [007](007-api-contracts-errors-validation.md) | API: REST + `/me`, Problem Details, Zod, OpenAPI → openapi-typescript                   | Принято | 2026-11-09 |
-| [008](008-logging-and-configuration.md)       | Логирование nestjs-pino, конфигурация env + Zod, токены из писем во фрагменте URL       | Принято | 2026-11-09 |
-| [009](009-frontend-structure.md)              | Frontend: RSC для чтения, изменения только через `/api/*`, `allowedActions` от API      | Принято | 2026-11-09 |
-| [010](010-development-environment.md)         | Окружение: Node 24, pnpm, PostgreSQL 18, инфра в Docker, ESLint + Prettier, GitHub Flow | Принято | 2026-11-09 |
+| №                                               | Решение                                                                                 | Статус  | Дата       |
+| ----------------------------------------------- | --------------------------------------------------------------------------------------- | ------- | ---------- |
+| [001](001-system-topology.md)                   | Топология: Next.js + NestJS API (модульный монолит) + PostgreSQL                        | Принято | 2026-11-09 |
+| [002](002-monorepo.md)                          | Монорепозиторий на pnpm workspaces                                                      | Принято | 2026-11-09 |
+| [003](003-double-booking-protection.md)         | Защита от двойного бронирования: exclusion constraint + истечение pending при записи    | Принято | 2026-11-09 |
+| [004](004-orm-drizzle.md)                       | ORM: Drizzle + drizzle-kit                                                              | Принято | 2026-11-09 |
+| [005](005-authentication-sessions.md)           | Аутентификация: серверные сессии в `__Host-` cookie, Argon2id                           | Принято | 2026-11-09 |
+| [006](006-backend-layers-and-modules.md)        | Backend: прагматичные слои, модули с владением таблицами, ацикличные зависимости        | Принято | 2026-11-09 |
+| [007](007-api-contracts-errors-validation.md)   | API: REST + `/me`, Problem Details, Zod, OpenAPI → openapi-typescript                   | Принято | 2026-11-09 |
+| [008](008-logging-and-configuration.md)         | Логирование nestjs-pino, конфигурация env + Zod, токены из писем во фрагменте URL       | Принято | 2026-11-09 |
+| [009](009-frontend-structure.md)                | Frontend: RSC для чтения, изменения только через `/api/*`, `allowedActions` от API      | Принято | 2026-11-09 |
+| [010](010-development-environment.md)           | Окружение: Node 24, pnpm, PostgreSQL 18, инфра в Docker, ESLint + Prettier, GitHub Flow | Принято | 2026-11-09 |
+| [011](011-architecture-checks-and-git-hooks.md) | Проверка границ: dependency-cruiser; pre-commit: husky + lint-staged                    | Принято | 2026-11-09 |

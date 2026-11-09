@@ -32,14 +32,15 @@
 
 ## Git
 
-- GitHub Flow: ветка от `main` → PR → squash merge. Conventional Commits (`feat(bookings): …`).
-- Не коммить и не пушь без запроса пользователя.
+- GitHub Flow: ветка от `main` → PR → squash merge. Заголовок PR — Conventional Commits (`feat(bookings): …`), проверяется в CI. Прямые коммиты в `main` не делаются.
+- Не коммить и не пушь без запроса пользователя. pre-commit (husky + lint-staged) не обходить через `--no-verify`.
 
 ## Команды
 
 - Инфраструктура: `docker compose up -d --wait` (PostgreSQL на `localhost:55432`, Mailpit UI `http://localhost:8025`).
-- Проверки всего репозитория: `pnpm lint`, `pnpm typecheck`, `pnpm test`, `pnpm format:check`.
-- api: `pnpm --filter @slotly/api dev | test | db:generate | db:migrate`.
+- Проверки всего репозитория: `pnpm lint` (ESLint + границы модулей через dependency-cruiser), `pnpm typecheck`, `pnpm test`, `pnpm format:check`.
+- Граф модулей api в `apps/api/.dependency-cruiser.cjs` совпадает с [backend.md](docs/architecture/backend.md) §2: новое ребро — только вместе с правкой документа и согласованием.
+- api: `pnpm --filter @slotly/api dev | test | db:generate | db:migrate`; web: `pnpm --filter @slotly/web dev | build`.
 - Версии зависимостей точные; скрипты установки разрешаются только через `allowBuilds` в `pnpm-workspace.yaml`; слишком свежие релизы не исключаются из `minimumReleaseAge` — берётся предыдущий патч.
 
 # Concept Loom

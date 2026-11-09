@@ -1,0 +1,2 @@
+# Fast checks on staged files only (ADR-010). Types, tests and the module graph run in `pnpm lint/typecheck/test` and CI.
+pnpm exec lint-staged --concurrent false

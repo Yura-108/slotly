@@ -27,7 +27,28 @@ export default defineConfig(
     rules: { 'no-restricted-properties': 'off' },
   },
   {
-    files: ['eslint.config.mjs'],
+    // Domain gets the current time as a parameter (ADR-006): deterministic rules and tests
+    files: ['src/modules/*/domain/**/*.ts'],
+    rules: {
+      'no-restricted-syntax': [
+        'error',
+        {
+          selector: "CallExpression[callee.object.name='Date'][callee.property.name='now']",
+          message: 'Domain code receives `now` as a parameter instead of reading the clock.',
+        },
+        {
+          selector: "NewExpression[callee.name='Date'][arguments.length=0]",
+          message: 'Domain code receives `now` as a parameter instead of reading the clock.',
+        },
+      ],
+    },
+  },
+  {
+    files: ['eslint.config.mjs', '.dependency-cruiser.cjs', '.lintstagedrc.mjs'],
     extends: [tseslint.configs.disableTypeChecked],
+  },
+  {
+    files: ['.dependency-cruiser.cjs'],
+    languageOptions: { sourceType: 'commonjs', globals: { module: 'writable' } },
   },
 );
