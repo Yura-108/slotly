@@ -30,14 +30,31 @@
 
 ```bash
 pnpm install
-docker compose up -d --wait   # PostgreSQL 18 (localhost:5433) и Mailpit
+docker compose up -d --wait   # PostgreSQL 18 (localhost:55432) и Mailpit
 ```
 
-| Сервис     | Адрес                                                              |
-| ---------- | ------------------------------------------------------------------ |
-| PostgreSQL | `postgres://slotly:slotly@localhost:5433/slotly` (только локально) |
-| Mailpit UI | http://localhost:8025 — письма, отправленные приложением           |
+| Сервис     | Адрес                                                               |
+| ---------- | ------------------------------------------------------------------- |
+| PostgreSQL | `postgres://slotly:slotly@localhost:55432/slotly` (только локально) |
+| Mailpit UI | http://localhost:8025 — письма, отправленные приложением            |
 
 Остановить инфраструктуру: `docker compose down` (данные БД сохраняются в volume; `docker compose down -v` удаляет их).
 
-_Запуск api и web появится по мере настройки этапа 4._
+### api
+
+```bash
+cp apps/api/.env.example apps/api/.env
+pnpm --filter @slotly/api dev       # http://localhost:4000/health
+```
+
+## Команды
+
+| Команда                                 | Что делает                          |
+| --------------------------------------- | ----------------------------------- |
+| `pnpm lint` / `typecheck` / `test`      | проверки во всех пакетах            |
+| `pnpm format` / `format:check`          | Prettier                            |
+| `pnpm --filter @slotly/api dev`         | api с hot reload                    |
+| `pnpm --filter @slotly/api db:generate` | сгенерировать SQL-миграцию по схеме |
+| `pnpm --filter @slotly/api db:migrate`  | применить миграции                  |
+
+_Запуск web появится по мере настройки этапа 4._

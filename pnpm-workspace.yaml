@@ -4,3 +4,14 @@ packages:
 
 # Pin exact versions: upgrades are deliberate, separate changes (ADR-004)
 saveExact: true
+
+# Dependency install scripts are blocked by default; each one is a reviewed decision.
+allowBuilds:
+  # Native compilers: scripts verify/repair the platform binary
+  '@swc/core': true
+  esbuild: true
+  # Pulled in by testcontainers for Docker-over-SSH, which we do not use
+  ssh2: false
+  cpu-features: false
+  # Only prints a version notice
+  protobufjs: false

@@ -37,7 +37,10 @@
 
 ## Команды
 
-_Заполняется по мере настройки этапа 4._
+- Инфраструктура: `docker compose up -d --wait` (PostgreSQL на `localhost:55432`, Mailpit UI `http://localhost:8025`).
+- Проверки всего репозитория: `pnpm lint`, `pnpm typecheck`, `pnpm test`, `pnpm format:check`.
+- api: `pnpm --filter @slotly/api dev | test | db:generate | db:migrate`.
+- Версии зависимостей точные; скрипты установки разрешаются только через `allowBuilds` в `pnpm-workspace.yaml`; слишком свежие релизы не исключаются из `minimumReleaseAge` — берётся предыдущий патч.
 
 # Concept Loom
 

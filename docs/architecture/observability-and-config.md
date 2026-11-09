@@ -14,7 +14,7 @@
 
 ### Корреляция
 
-- `requestId`: берётся из `X-Request-Id`, только если запрос пришёл от доверенного прокси (наш web); иначе генерируется (UUID v7).
+- `requestId`: генерируется на каждый запрос (`crypto.randomUUID`). Приём `X-Request-Id` от доверенного прокси (наш web) — когда появится web и настройка `TRUSTED_PROXY`.
 - Присутствует в каждой строке лога запроса (AsyncLocalStorage), в заголовке ответа `X-Request-Id` и в Problem Details.
 - Фоновые задачи: контекст — `outboxMessageId`, `attempt`, имя задачи.
 

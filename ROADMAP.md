@@ -19,7 +19,21 @@
 
 ## Текущий шаг
 
-Этап 4 — организация разработки. План уточняется в начале этапа; первая задача — прототип, подтверждающий ADR-003/004/005 (exclusion constraint, `23P01`, тест конкурентного бронирования, `__Host-` cookie через rewrites).
+Этап 4 — организация разработки ([ADR-010](docs/adr/010-development-environment.md)):
+
+1. ✅ Основа репозитория, CLAUDE.md.
+2. ✅ pnpm workspace, TypeScript, Prettier.
+3. ✅ Docker Compose: PostgreSQL 18, Mailpit.
+4. ✅ Каркас `apps/api`: конфигурация, логирование, БД, health check.
+5. Прототип: exclusion constraint, `23P01`, тест конкурентного бронирования (подтверждает ADR-003/004).
+6. Каркас `apps/web`: rewrites `/api/*`, проверка `__Host-` cookie (подтверждает ADR-005).
+7. Процесс: границы модулей, pre-commit, шаблон PR, GitHub.
+
+## Отложенные задачи
+
+- Переход на Node 26 — начало 2027.
+- Переход на NestJS 12 и ESM в api — после поддержки NestJS 12 в nestjs-zod.
+- Переход на TypeScript 7 — после поддержки в typescript-eslint, NestJS CLI и Next.js.
 
 Архитектура (этап 3) — завершена 2026-11-09:
 
