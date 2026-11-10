@@ -6,6 +6,7 @@ import { HttpModule } from './infrastructure/http/http.module';
 import { LoggingModule } from './infrastructure/logging/logging.module';
 import { AuthModule } from './modules/auth/auth.module';
 import { ServicesModule } from './modules/services/services.module';
+import { SchedulingModule } from './modules/scheduling/scheduling.module';
 import { SpecialistsModule } from './modules/specialists/specialists.module';
 import { UsersModule } from './modules/users/users.module';
 
@@ -20,6 +21,7 @@ import { UsersModule } from './modules/users/users.module';
     AuthModule,
     SpecialistsModule,
     ServicesModule,
+    SchedulingModule,
   ],
   controllers: [HealthController],
 })

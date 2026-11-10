@@ -36,6 +36,20 @@
       "when": 1794301187942,
       "tag": "0004_profile_and_service_text_limits",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1794303027759,
+      "tag": "0005_schedule_tables",
+      "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1794303029072,
+      "tag": "0006_weekly_availability_no_overlap",
+      "breakpoints": true
     }
   ]
 }

@@ -28,6 +28,9 @@ export function httpClient(server: App, session?: string) {
       prepare(request(server).post(path).set('Origin', TEST_ORIGIN)).send(body),
     patch: (path: string, body: object) =>
       prepare(request(server).patch(path).set('Origin', TEST_ORIGIN)).send(body),
+    put: (path: string, body: object) =>
+      prepare(request(server).put(path).set('Origin', TEST_ORIGIN)).send(body),
+    delete: (path: string) => prepare(request(server).delete(path).set('Origin', TEST_ORIGIN)),
   };
 }
 
