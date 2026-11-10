@@ -16,13 +16,18 @@ export interface TestApp {
 /**
  * The real AppModule with the production HTTP pipeline (configureApp) on a throwaway
  * PostgreSQL. Only the configuration source is replaced: no mocks of our own code.
+ * The outbox worker loop is off; tests deliver emails explicitly via OutboxProcessor.
  */
-export async function startTestApp(): Promise<TestApp> {
+export async function startTestApp(options: { smtpUrl?: string } = {}): Promise<TestApp> {
   const database = await startTestDatabase();
   const config = loadConfig({
     DATABASE_URL: database.connectionUri,
     APP_ORIGIN: TEST_ORIGIN,
     LOG_LEVEL: 'fatal',
+    // Nothing listens there: tests that do not deliver emails never connect
+    SMTP_URL: options.smtpUrl ?? 'smtp://127.0.0.1:1',
+    EMAIL_FROM: 'Slotly <no-reply@slotly.test>',
+    OUTBOX_POLL_INTERVAL_MS: '0',
   });
 
   const moduleRef = await Test.createTestingModule({ imports: [AppModule] })

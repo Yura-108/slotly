@@ -40,6 +40,18 @@ describe('UsersRepository', () => {
     expect(results.filter((r) => r.status === 'email_taken')).toHaveLength(9);
   });
 
+  it('keeps the surrounding transaction usable after a taken email', async () => {
+    const email = `tx-${randomUUID()}@example.test`;
+    await repository.insert(database.db, user(email));
+
+    const found = await database.db.transaction(async (tx) => {
+      expect(await repository.insert(tx, user(email))).toEqual({ status: 'email_taken' });
+      // With a caught 23505 instead of ON CONFLICT this would fail: "transaction is aborted"
+      return repository.findByEmail(tx, email);
+    });
+    expect(found?.email).toBe(email);
+  });
+
   it('refuses a non-normalized email at the database level', async () => {
     const error = await repository
       .insert(database.db, user(`Mixed-${randomUUID()}@Example.test`))

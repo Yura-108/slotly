@@ -18,3 +18,22 @@ export const loginFormSchema = z.object({
 });
 
 export type LoginFormValues = z.infer<typeof loginFormSchema>;
+
+export const forgotPasswordFormSchema = z.object({
+  email: z.string().trim().pipe(z.email('Введите корректный email')),
+});
+
+export type ForgotPasswordFormValues = z.infer<typeof forgotPasswordFormSchema>;
+
+export const resetPasswordFormSchema = z
+  .object({
+    password: z.string().min(8, 'Минимум 8 символов').max(128, 'Не длиннее 128 символов'),
+    passwordConfirmation: z.string(),
+  })
+  // A UX check only: the API receives one password
+  .refine((v) => v.password === v.passwordConfirmation, {
+    path: ['passwordConfirmation'],
+    message: 'Пароли не совпадают',
+  });
+
+export type ResetPasswordFormValues = z.infer<typeof resetPasswordFormSchema>;

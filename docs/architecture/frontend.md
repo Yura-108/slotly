@@ -80,4 +80,5 @@ apps/web/src/
 - Фичи не импортируют друг друга напрямую; общее — в `shared`. Проверяется dependency-cruiser в `pnpm lint` (`apps/web/.dependency-cruiser.cjs`, [ADR-011](../adr/011-architecture-checks-and-git-hooks.md)).
 - Формы — react-hook-form + Zod.
 - Тексты интерфейса — на русском, собраны в одном месте в рамках фичи (готовность к i18n без самой i18n).
-- Страницы подтверждения email и сброса пароля читают токен из `location.hash` (ADR-008).
+- Страницы подтверждения email и сброса пароля читают токен из `location.hash` (ADR-008) через `useFragmentToken`: токен сразу убирается из адресной строки и истории, на страницах `Referrer-Policy: no-referrer`. Подтверждение отправляется один раз даже при двойном запуске эффектов в Strict Mode.
+- Значения форм, которые влияют на серверный HTML (например, выбранный `<option>`), передаются в `defaultValue`: `register()` react-hook-form выставляет значение только после hydration.

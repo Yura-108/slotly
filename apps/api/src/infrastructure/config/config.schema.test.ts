@@ -4,6 +4,8 @@ import { ConfigValidationError, loadConfig } from './config.schema';
 const validEnv = {
   DATABASE_URL: 'postgres://u:p@localhost:5433/db',
   APP_ORIGIN: 'http://localhost:3000',
+  SMTP_URL: 'smtp://localhost:1025',
+  EMAIL_FROM: 'Slotly <no-reply@slotly.test>',
 };
 
 describe('loadConfig', () => {
@@ -16,6 +18,8 @@ describe('loadConfig', () => {
       appOrigin: validEnv.APP_ORIGIN,
       session: { cookieName: '__Host-session', cookieSecure: true },
       trustedProxy: 'loopback',
+      email: { smtpUrl: validEnv.SMTP_URL, from: validEnv.EMAIL_FROM },
+      outbox: { pollIntervalMs: 5000 },
       log: { level: 'info', format: 'json' },
     });
   });
