@@ -1,0 +1,3 @@
+ALTER TABLE "specialist_profiles" ADD CONSTRAINT "specialist_profiles_display_name_length" CHECK (char_length("specialist_profiles"."display_name") between 1 and 100);--> statement-breakpoint
+ALTER TABLE "specialist_profiles" ADD CONSTRAINT "specialist_profiles_bio_length" CHECK (char_length("specialist_profiles"."bio") <= 2000);--> statement-breakpoint
+ALTER TABLE "services" ADD CONSTRAINT "services_description_length" CHECK (char_length("services"."description") <= 2000);
