@@ -5,11 +5,22 @@ import { HealthController } from './infrastructure/health/health.controller';
 import { HttpModule } from './infrastructure/http/http.module';
 import { LoggingModule } from './infrastructure/logging/logging.module';
 import { AuthModule } from './modules/auth/auth.module';
+import { ServicesModule } from './modules/services/services.module';
+import { SpecialistsModule } from './modules/specialists/specialists.module';
 import { UsersModule } from './modules/users/users.module';
 
 @Module({
   // HttpModule first: its global guards (Origin, rate limit) run before the session guard
-  imports: [ConfigModule, LoggingModule, DatabaseModule, HttpModule, UsersModule, AuthModule],
+  imports: [
+    ConfigModule,
+    LoggingModule,
+    DatabaseModule,
+    HttpModule,
+    UsersModule,
+    AuthModule,
+    SpecialistsModule,
+    ServicesModule,
+  ],
   controllers: [HealthController],
 })
 export class AppModule {}

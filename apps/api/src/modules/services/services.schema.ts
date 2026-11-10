@@ -19,6 +19,7 @@ export const services = pgTable(
   },
   (t) => [
     check('services_name_length', sql`char_length(${t.name}) between 1 and 100`),
+    check('services_description_length', sql`char_length(${t.description}) <= 2000`),
     check(
       'services_duration_valid',
       sql`${t.durationMinutes} between 15 and 480 and ${t.durationMinutes} % 5 = 0`,
@@ -28,3 +29,5 @@ export const services = pgTable(
       .where(sql`${t.archivedAt} is null`),
   ],
 );
+
+export type ServiceRow = typeof services.$inferSelect;

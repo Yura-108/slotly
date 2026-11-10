@@ -86,8 +86,8 @@ outbox_messages — без внешних ключей (очередь исхо�
 | ---------------------------- | ------------------------------------------- | ------------------------------------- | --------------------------------- |
 | user_id                      | uuid                                        | PK, FK → users                        |                                   |
 | slug                         | text                                        | UNIQUE, NOT NULL, `^[a-z0-9-]{3,40}$` | адрес публичной страницы          |
-| display_name                 | text                                        | NOT NULL                              |                                   |
-| bio                          | text                                        | NULL                                  |                                   |
+| display_name                 | text                                        | NOT NULL, 1–100 символов              |                                   |
+| bio                          | text                                        | NULL, до 2000 символов                |                                   |
 | timezone                     | text                                        | NOT NULL                              | IANA; в нём трактуется расписание |
 | confirmation_mode            | enum `confirmation_mode` (`auto`, `manual`) | NOT NULL DEFAULT `manual`             |                                   |
 | min_notice_minutes           | integer                                     | NOT NULL, 0..10080                    | по умолчанию 120                  |
@@ -104,7 +104,7 @@ outbox_messages — без внешних ключей (очередь исхо�
 | id                     | uuid        | PK                                         |                                       |
 | specialist_id          | uuid        | FK → specialist_profiles, NOT NULL         |                                       |
 | name                   | text        | NOT NULL, 1–100                            |                                       |
-| description            | text        | NULL                                       |                                       |
+| description            | text        | NULL, до 2000 символов                     |                                       |
 | duration_minutes       | integer     | NOT NULL, `BETWEEN 15 AND 480 AND % 5 = 0` | FR-20                                 |
 | archived_at            | timestamptz | NULL                                       | архивирование вместо удаления (FR-21) |
 | created_at, updated_at | timestamptz | NOT NULL                                   |                                       |
