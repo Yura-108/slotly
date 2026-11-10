@@ -6,6 +6,8 @@ import { z } from 'zod';
  */
 const serverEnvSchema = z.object({
   API_INTERNAL_URL: z.url({ protocol: /^https?$/ }),
+  // Must match the API (apps/api SESSION_COOKIE_NAME); used only for the optimistic redirect
+  SESSION_COOKIE_NAME: z.string().min(1).default('__Host-session'),
 });
 
 export type ServerEnv = z.infer<typeof serverEnvSchema>;

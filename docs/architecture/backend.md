@@ -106,6 +106,14 @@ apps/api/src/
 
 Схема Drizzle — по файлу на модуль-владельца (`modules/*/…schema.ts`), собирается в `infrastructure/database`. Миграции — `apps/api/drizzle/`.
 
+Соглашения, установленные в срезе 1:
+
+- **`infrastructure/http/`** — общее для всех модулей: глобальный exception filter (Problem Details), `ZodValidationPipe` и `ZodSerializerInterceptor`, guard проверки `Origin`, rate limit, `@Public()` и `@CurrentAuth()`. `@CurrentAuth()` лежит здесь, а не в `auth`, чтобы любой модуль читал текущего пользователя без зависимости от `auth` (иначе `users → auth → users` — цикл).
+- **Репозиторий — без состояния**: каждый метод первым аргументом получает `Executor` (`Database | Tx`). Сервис решает, выполнить запрос отдельно или в своей транзакции.
+- **Ожидаемый исход — результат, а не исключение**: `UsersService.create` возвращает `{ status: 'email_taken' }`. Так другие модули не импортируют внутренние ошибки чужого модуля (dependency-cruiser разрешает импорт только `*.module.ts` и `*.service.ts`).
+- **`app.setup.ts`** — настройка Express (trust proxy, cookie-parser, русская локаль Zod), общая для `main.ts`, e2e-тестов и генерации OpenAPI.
+- **Тесты**: unit — домен и чистые функции; `*.int.test.ts` — репозитории на PostgreSQL; `*.e2e.test.ts` — HTTP-запросы к настоящему `AppModule` (`test-utils/app.ts`), подменяется только источник конфигурации.
+
 ## 4. Фоновые задачи
 
 - Обработчик outbox, истечение `pending`, уборка истёкших сессий и токенов — **в том же процессе** через планировщик NestJS.

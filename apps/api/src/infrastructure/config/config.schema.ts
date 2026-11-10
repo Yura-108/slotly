@@ -4,10 +4,19 @@ import { z } from 'zod';
 const envSchema = z.object({
   PORT: z.coerce.number().int().min(1).max(65535).default(4000),
   DATABASE_URL: z.url({ protocol: /^postgres(ql)?$/ }),
-  APP_ORIGIN: z.url(),
+  APP_ORIGIN: z.url({ protocol: /^https?$/ }),
   LOG_LEVEL: z.enum(['fatal', 'error', 'warn', 'info', 'debug', 'trace']).default('info'),
   LOG_FORMAT: z.enum(['json', 'pretty']).default('json'),
+  SESSION_COOKIE_NAME: z
+    .string()
+    .regex(/^[A-Za-z0-9_-]+$/)
+    .default('__Host-session'),
+  COOKIE_SECURE: z.stringbool().default(true),
+  // Express "trust proxy": addresses allowed to set X-Forwarded-For (keywords, IPs or CIDRs)
+  TRUSTED_PROXY: z.string().min(1).default('loopback'),
 });
+
+type Env = z.infer<typeof envSchema>;
 
 /**
  * Typed application configuration. Abstract class so it can serve as a DI token;
@@ -16,10 +25,16 @@ const envSchema = z.object({
 export abstract class AppConfig {
   declare readonly port: number;
   declare readonly databaseUrl: string;
+  /** Bare origin (`scheme://host[:port]`) of the web app: Origin check, links in emails. */
   declare readonly appOrigin: string;
+  declare readonly session: {
+    readonly cookieName: string;
+    readonly cookieSecure: boolean;
+  };
+  declare readonly trustedProxy: string;
   declare readonly log: {
-    readonly level: z.infer<typeof envSchema>['LOG_LEVEL'];
-    readonly format: z.infer<typeof envSchema>['LOG_FORMAT'];
+    readonly level: Env['LOG_LEVEL'];
+    readonly format: Env['LOG_FORMAT'];
   };
 }
 
@@ -36,10 +51,19 @@ export function loadConfig(env: Record<string, string | undefined>): AppConfig {
     );
   }
   const e = parsed.data;
+  // Browsers silently drop a __Host- cookie without the Secure flag: fail at startup instead
+  if (e.SESSION_COOKIE_NAME.startsWith('__Host-') && !e.COOKIE_SECURE) {
+    throw new ConfigValidationError(
+      'Invalid environment configuration:\nSESSION_COOKIE_NAME with the __Host- prefix requires COOKIE_SECURE=true',
+    );
+  }
   return {
     port: e.PORT,
     databaseUrl: e.DATABASE_URL,
-    appOrigin: e.APP_ORIGIN,
+    // Compared with the Origin header byte for byte, so keep only scheme://host[:port]
+    appOrigin: new URL(e.APP_ORIGIN).origin,
+    session: { cookieName: e.SESSION_COOKIE_NAME, cookieSecure: e.COOKIE_SECURE },
+    trustedProxy: e.TRUSTED_PROXY,
     log: { level: e.LOG_LEVEL, format: e.LOG_FORMAT },
   };
 }

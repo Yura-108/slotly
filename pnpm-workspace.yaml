@@ -15,3 +15,10 @@ allowBuilds:
   cpu-features: false
   # Only prints a version notice
   protobufjs: false
+  # Install-time telemetry pulled in by swagger-ui-dist (@nestjs/swagger); not needed
+  '@scarf/scarf': false
+
+peerDependencyRules:
+  allowedVersions:
+    # Declares typescript ^5; generation verified on 6.0 (TS 6 keeps the 5.x compiler API)
+    openapi-typescript>typescript: '6'

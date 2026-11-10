@@ -10,10 +10,21 @@ export const PgErrorCode = {
  * so the cause chain is walked.
  */
 export function pgErrorCode(error: unknown): string | undefined {
+  return findPgError(error)?.code;
+}
+
+/** Name of the violated constraint, to tell apart several unique constraints of one table. */
+export function pgConstraint(error: unknown): string | undefined {
+  return findPgError(error)?.constraint;
+}
+
+function findPgError(error: unknown): { code: string; constraint?: string } | undefined {
   let current: unknown = error;
   for (let depth = 0; depth < 5 && current instanceof Error; depth++) {
-    const code = (current as { code?: unknown }).code;
-    if (typeof code === 'string' && /^[0-9A-Z]{5}$/.test(code)) return code;
+    const { code, constraint } = current as { code?: unknown; constraint?: unknown };
+    if (typeof code === 'string' && /^[0-9A-Z]{5}$/.test(code)) {
+      return { code, constraint: typeof constraint === 'string' ? constraint : undefined };
+    }
     current = current.cause;
   }
   return undefined;

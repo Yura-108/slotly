@@ -3,3 +3,6 @@ pnpm-lock.yaml
 **/.next/
 **/coverage/
 **/drizzle/meta/
+# Generated contract (pnpm --filter @slotly/api openapi:generate)
+apps/api/openapi.json
+apps/web/src/shared/api/schema.d.ts

@@ -14,8 +14,29 @@ describe('loadConfig', () => {
       port: 4000,
       databaseUrl: validEnv.DATABASE_URL,
       appOrigin: validEnv.APP_ORIGIN,
+      session: { cookieName: '__Host-session', cookieSecure: true },
+      trustedProxy: 'loopback',
       log: { level: 'info', format: 'json' },
     });
+  });
+
+  it('normalizes APP_ORIGIN to a bare origin', () => {
+    expect(loadConfig({ ...validEnv, APP_ORIGIN: 'https://slotly.example/' }).appOrigin).toBe(
+      'https://slotly.example',
+    );
+  });
+
+  it('parses COOKIE_SECURE as a boolean', () => {
+    const config = loadConfig({
+      ...validEnv,
+      SESSION_COOKIE_NAME: 'session',
+      COOKIE_SECURE: 'false',
+    });
+    expect(config.session).toEqual({ cookieName: 'session', cookieSecure: false });
+  });
+
+  it('refuses a __Host- cookie without Secure', () => {
+    expect(() => loadConfig({ ...validEnv, COOKIE_SECURE: 'false' })).toThrow(/__Host-/);
   });
 
   it('coerces PORT from string', () => {

@@ -1,10 +1,10 @@
-import { DomainError } from '../../../shared/domain-error';
+import { ConflictError } from '../../../shared/domain-error';
 
-/** The requested time overlaps another active booking of the specialist (409). */
-export class BookingConflictError extends DomainError {
+/** The requested time overlaps another active booking of the specialist. */
+export class BookingConflictError extends ConflictError {
   readonly code = 'BOOKING_SLOT_TAKEN';
 
   constructor() {
-    super('The requested time overlaps an active booking');
+    super('Выбранное время только что забронировали. Выберите другой слот.');
   }
 }
