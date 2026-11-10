@@ -6,3 +6,4 @@ export * from '../../modules/bookings/bookings.schema';
 export * from '../../modules/auth/sessions.schema';
 export * from '../../modules/notifications/outbox.schema';
 export * from '../../modules/auth/auth-tokens.schema';
+export * from '../../modules/scheduling/scheduling.schema';

@@ -28,6 +28,9 @@ export default async function AppLayout({ children }: { children: ReactNode }) {
                 <Link href="/specialist/services" className="text-slate-600 hover:text-slate-900">
                   Услуги
                 </Link>
+                <Link href="/specialist/schedule" className="text-slate-600 hover:text-slate-900">
+                  Расписание
+                </Link>
                 <Link href="/specialist/settings" className="text-slate-600 hover:text-slate-900">
                   Профиль специалиста
                 </Link>
