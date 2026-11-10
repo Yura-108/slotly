@@ -5,11 +5,16 @@ import { isValidTimeZone } from '../../../shared/time-zone';
 // Normalization to lower case is a domain rule (users/domain/email.ts); here only the format
 const email = z.string().trim().max(254).pipe(z.email());
 
+// Length is the policy (NIST SP 800-63B); the upper bound limits hashing cost per request
+const newPassword = z.string().min(8).max(128);
+
+// base64url of 32 random bytes; a looser bound keeps the error uniform for bad links
+const emailToken = z.string().min(16).max(128);
+
 export const registerRequestSchema = z
   .object({
     email,
-    // Length is the policy (NIST SP 800-63B); the upper bound limits hashing cost per request
-    password: z.string().min(8).max(128),
+    password: newPassword,
     name: z.string().trim().min(1).max(100),
     timezone: z
       .string()
@@ -29,3 +34,19 @@ export const loginRequestSchema = z
   .meta({ id: 'LoginRequest' });
 
 export class LoginRequestDto extends createZodDto(loginRequestSchema) {}
+
+export const verifyEmailRequestSchema = z
+  .object({ token: emailToken })
+  .meta({ id: 'VerifyEmailRequest' });
+
+export class VerifyEmailRequestDto extends createZodDto(verifyEmailRequestSchema) {}
+
+export const passwordResetRequestSchema = z.object({ email }).meta({ id: 'PasswordResetRequest' });
+
+export class PasswordResetRequestDto extends createZodDto(passwordResetRequestSchema) {}
+
+export const passwordResetConfirmSchema = z
+  .object({ token: emailToken, password: newPassword })
+  .meta({ id: 'PasswordResetConfirm' });
+
+export class PasswordResetConfirmDto extends createZodDto(passwordResetConfirmSchema) {}

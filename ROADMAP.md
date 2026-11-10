@@ -22,7 +22,7 @@
 Этап 5 — реализация vertical slices (план утверждён 2026-11-09). Каждый срез — от миграции до UI и тестов, отдельный PR:
 
 1. ✅ Регистрация, вход, выход, `GET /me` (FR-1, FR-3) + основа API: Problem Details, nestjs-zod, OpenAPI и клиент web, проверка `Origin`, rate limit с адресом клиента через прокси.
-2. Подтверждение email, сброс пароля, редактирование профиля (FR-2, FR-4, FR-5) + outbox, письма, фоновые задачи.
+2. ✅ Подтверждение email, сброс пароля, редактирование профиля (FR-2, FR-4, FR-5) + outbox, письма, фоновые задачи — [ADR-012](docs/adr/012-outbox-and-email-delivery.md).
 3. Профиль специалиста и услуги (FR-10, FR-11, FR-20, FR-21), публичная страница `/book/{slug}`.
 4. Недельное расписание и выходные (FR-30, FR-31).
 5. Слоты (FR-40–43): `calculateSlots`, часовые пояса и переход на летнее время.
@@ -48,6 +48,7 @@
 - Переход на NestJS 12 и ESM в api — после поддержки NestJS 12 в nestjs-zod.
 - Переход на TypeScript 7 — после поддержки в typescript-eslint, NestJS CLI и Next.js.
 - ESLint 10 в `apps/web` — после поддержки в `eslint-config-next` (сейчас её плагины `eslint-plugin-react`, `-import`, `-jsx-a11y` объявляют ESLint до 9; web на ESLint 9.39, api — на 10).
+- Этап 9: выбрать почтовый сервис (SMTP), настроить SPF/DKIM/DMARC домена; алерт на сообщения outbox в статусе `failed`.
 - Этап 9: `TRUSTED_PROXY` под сеть хостинга (сейчас `loopback`); Swagger UI `/docs` — только вне production или за аутентификацией.
 - Этап 8: CI перегенерирует `openapi.json` и `schema.d.ts` и падает при расхождении; генерации нужны переменные `DATABASE_URL` и `APP_ORIGIN` (к БД не подключается).
 - Этап 9: адрес API в rewrites фиксируется при `next build` — выбрать сборку на окружение или `proxy.ts` с адресом во время выполнения.

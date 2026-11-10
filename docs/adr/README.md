@@ -17,3 +17,4 @@ ADR фиксирует значимое архитектурное решени�
 | [009](009-frontend-structure.md)                | Frontend: RSC для чтения, изменения только через `/api/*`, `allowedActions` от API      | Принято | 2026-11-09 |
 | [010](010-development-environment.md)           | Окружение: Node 24, pnpm, PostgreSQL 18, инфра в Docker, ESLint + Prettier, GitHub Flow | Принято | 2026-11-09 |
 | [011](011-architecture-checks-and-git-hooks.md) | Проверка границ: dependency-cruiser; pre-commit: husky + lint-staged                    | Принято | 2026-11-09 |
+| [012](012-outbox-and-email-delivery.md)         | Outbox в PostgreSQL, обработчик с арендой, SMTP через nodemailer                        | Принято | 2026-11-10 |

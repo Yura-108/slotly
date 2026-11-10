@@ -26,6 +26,10 @@ services:
   mailpit:
     image: axllent/mailpit:v1.33.0
     restart: unless-stopped
+    environment:
+      # Skip the reverse DNS lookup of the SMTP client: on Docker Desktop it can stall
+      # past nodemailer's greeting timeout (found in slice 2 tests)
+      MP_SMTP_DISABLE_RDNS: 'true'
     ports:
       - '1025:1025' # SMTP — api sends emails here in development
       - '8025:8025' # web UI to read intercepted emails

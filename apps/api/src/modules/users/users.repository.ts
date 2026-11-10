@@ -1,7 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { eq } from 'drizzle-orm';
 import type { Executor } from '../../infrastructure/database/database.module';
-import { PgErrorCode, pgConstraint, pgErrorCode } from '../../infrastructure/database/pg-errors';
 import { type NewUserRow, type UserRow, users } from './users.schema';
 
 export type InsertUserResult = { status: 'created'; user: UserRow } | { status: 'email_taken' };
@@ -11,21 +10,16 @@ export class UsersRepository {
   /**
    * Uniqueness is decided by the database, not by a prior SELECT: two concurrent
    * registrations of one email cannot both pass (CLAUDE.md rule 6).
+   * ON CONFLICT DO NOTHING instead of catching 23505: an error would abort the caller's
+   * transaction, and registration continues in it (the "account exists" email, ADR-012).
    */
   async insert(db: Executor, row: NewUserRow): Promise<InsertUserResult> {
-    try {
-      const [user] = await db.insert(users).values(row).returning();
-      if (!user) throw new Error('INSERT ... RETURNING returned no row');
-      return { status: 'created', user };
-    } catch (error) {
-      if (
-        pgErrorCode(error) === PgErrorCode.uniqueViolation &&
-        pgConstraint(error) === 'users_email_unique'
-      ) {
-        return { status: 'email_taken' };
-      }
-      throw error;
-    }
+    const [user] = await db
+      .insert(users)
+      .values(row)
+      .onConflictDoNothing({ target: users.email })
+      .returning();
+    return user ? { status: 'created', user } : { status: 'email_taken' };
   }
 
   async findById(db: Executor, id: string): Promise<UserRow | undefined> {
@@ -38,7 +32,12 @@ export class UsersRepository {
     return user;
   }
 
-  async updatePasswordHash(db: Executor, id: string, passwordHash: string): Promise<void> {
-    await db.update(users).set({ passwordHash }).where(eq(users.id, id));
+  async update(
+    db: Executor,
+    id: string,
+    changes: Partial<Pick<UserRow, 'name' | 'timezone' | 'passwordHash' | 'emailVerifiedAt'>>,
+  ): Promise<UserRow | undefined> {
+    const [user] = await db.update(users).set(changes).where(eq(users.id, id)).returning();
+    return user;
   }
 }

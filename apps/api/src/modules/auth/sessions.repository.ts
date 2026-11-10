@@ -28,6 +28,11 @@ export class SessionsRepository {
     await db.delete(sessions).where(eq(sessions.id, id));
   }
 
+  /** Password change or reset ends every session of the user (ADR-005). */
+  async deleteAllForUser(db: Executor, userId: string): Promise<void> {
+    await db.delete(sessions).where(eq(sessions.userId, userId));
+  }
+
   async deleteByTokenHash(db: Executor, tokenHash: Buffer): Promise<void> {
     await db.delete(sessions).where(eq(sessions.tokenHash, tokenHash));
   }

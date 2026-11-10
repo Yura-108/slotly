@@ -14,6 +14,11 @@ const envSchema = z.object({
   COOKIE_SECURE: z.stringbool().default(true),
   // Express "trust proxy": addresses allowed to set X-Forwarded-For (keywords, IPs or CIDRs)
   TRUSTED_PROXY: z.string().min(1).default('loopback'),
+  // ADR-012: one SMTP path everywhere — Mailpit locally, the email provider's SMTP in production
+  SMTP_URL: z.url({ protocol: /^smtps?$/ }),
+  EMAIL_FROM: z.string().min(3),
+  // How often the outbox worker polls; 0 disables the loop (tests process batches explicitly)
+  OUTBOX_POLL_INTERVAL_MS: z.coerce.number().int().min(0).default(5000),
 });
 
 type Env = z.infer<typeof envSchema>;
@@ -32,6 +37,13 @@ export abstract class AppConfig {
     readonly cookieSecure: boolean;
   };
   declare readonly trustedProxy: string;
+  declare readonly email: {
+    readonly smtpUrl: string;
+    readonly from: string;
+  };
+  declare readonly outbox: {
+    readonly pollIntervalMs: number;
+  };
   declare readonly log: {
     readonly level: Env['LOG_LEVEL'];
     readonly format: Env['LOG_FORMAT'];
@@ -64,6 +76,8 @@ export function loadConfig(env: Record<string, string | undefined>): AppConfig {
     appOrigin: new URL(e.APP_ORIGIN).origin,
     session: { cookieName: e.SESSION_COOKIE_NAME, cookieSecure: e.COOKIE_SECURE },
     trustedProxy: e.TRUSTED_PROXY,
+    email: { smtpUrl: e.SMTP_URL, from: e.EMAIL_FROM },
+    outbox: { pollIntervalMs: e.OUTBOX_POLL_INTERVAL_MS },
     log: { level: e.LOG_LEVEL, format: e.LOG_FORMAT },
   };
 }
