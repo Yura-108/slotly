@@ -40,7 +40,9 @@
 - Инфраструктура: `docker compose up -d --wait` (PostgreSQL на `localhost:55432`, Mailpit UI `http://localhost:8025`).
 - Проверки всего репозитория: `pnpm lint` (ESLint + границы модулей через dependency-cruiser), `pnpm typecheck`, `pnpm test`, `pnpm format:check`.
 - Граф модулей api в `apps/api/.dependency-cruiser.cjs` совпадает с [backend.md](docs/architecture/backend.md) §2: новое ребро — только вместе с правкой документа и согласованием.
-- api: `pnpm --filter @slotly/api dev | test | db:generate | db:migrate`; web: `pnpm --filter @slotly/web dev | build`.
+- api: `pnpm --filter @slotly/api dev | test | db:generate | db:migrate | openapi:generate`; web: `pnpm --filter @slotly/web dev | build | test | api:types`.
+- Изменил DTO или маршрут — перегенерируй `openapi.json` и `apps/web/src/shared/api/schema.d.ts` и закоммить оба файла.
+- Маршруты api закрыты по умолчанию (глобальный `SessionGuard`); открытый маршрут помечается `@Public()` осознанно.
 - Версии зависимостей точные; скрипты установки разрешаются только через `allowBuilds` в `pnpm-workspace.yaml`; слишком свежие релизы не исключаются из `minimumReleaseAge` — берётся предыдущий патч.
 
 # Concept Loom

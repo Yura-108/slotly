@@ -44,6 +44,7 @@ docker compose up -d --wait   # PostgreSQL 18 (localhost:55432) и Mailpit
 
 ```bash
 cp apps/api/.env.example apps/api/.env
+pnpm --filter @slotly/api db:migrate  # применить миграции к локальной БД
 pnpm --filter @slotly/api dev       # http://localhost:4000/health
 ```
 
@@ -58,14 +59,16 @@ pnpm --filter @slotly/web dev       # http://localhost:3000, /api/* прокси
 
 ## Команды
 
-| Команда                                 | Что делает                          |
-| --------------------------------------- | ----------------------------------- |
-| `pnpm lint` / `typecheck` / `test`      | проверки во всех пакетах            |
-| `pnpm format` / `format:check`          | Prettier                            |
-| `pnpm --filter @slotly/api dev`         | api с hot reload                    |
-| `pnpm --filter @slotly/web dev`         | web с hot reload                    |
-| `pnpm --filter @slotly/api db:generate` | сгенерировать SQL-миграцию по схеме |
-| `pnpm --filter @slotly/api db:migrate`  | применить миграции                  |
+| Команда                                      | Что делает                                |
+| -------------------------------------------- | ----------------------------------------- |
+| `pnpm lint` / `typecheck` / `test`           | проверки во всех пакетах                  |
+| `pnpm format` / `format:check`               | Prettier                                  |
+| `pnpm --filter @slotly/api dev`              | api с hot reload                          |
+| `pnpm --filter @slotly/web dev`              | web с hot reload                          |
+| `pnpm --filter @slotly/api db:generate`      | сгенерировать SQL-миграцию по схеме       |
+| `pnpm --filter @slotly/api db:migrate`       | применить миграции                        |
+| `pnpm --filter @slotly/api openapi:generate` | обновить контракт `apps/api/openapi.json` |
+| `pnpm --filter @slotly/web api:types`        | типы клиента web из `openapi.json`        |
 
 ## Процесс разработки
 

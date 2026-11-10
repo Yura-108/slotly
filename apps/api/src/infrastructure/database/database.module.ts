@@ -7,6 +7,8 @@ import * as schema from './schema';
 export type Database = NodePgDatabase<typeof schema>;
 /** Transaction handle passed explicitly from services to repositories (ADR-006). */
 export type Tx = Parameters<Parameters<Database['transaction']>[0]>[0];
+/** What repository methods accept: the pool for single statements or a transaction. */
+export type Executor = Database | Tx;
 
 export const DATABASE = Symbol('DATABASE');
 const PG_POOL = Symbol('PG_POOL');

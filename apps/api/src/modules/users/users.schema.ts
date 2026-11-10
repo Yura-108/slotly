@@ -20,3 +20,6 @@ export const users = pgTable(
     check('users_name_length', sql`char_length(${t.name}) between 1 and 100`),
   ],
 );
+
+export type UserRow = typeof users.$inferSelect;
+export type NewUserRow = typeof users.$inferInsert;

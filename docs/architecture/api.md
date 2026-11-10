@@ -77,6 +77,13 @@
 | rate limit             | 429  | `RATE_LIMITED` (+ `Retry-After`)                                                                                        |
 | прочее                 | 500  | `INTERNAL_ERROR`                                                                                                        |
 
+Реализация (`apps/api/src/infrastructure/http/problem-details.ts`):
+
+- Категория ошибки — базовый класс в `shared/domain-error.ts` (`UnauthenticatedError`, `ForbiddenError`, `NotFoundError`, `ConflictError`, `BusinessRuleError`). `message` доменной ошибки — текст для пользователя на русском, он становится `detail`. Доменная ошибка без категории считается ошибкой программы → 500.
+- Ошибки фреймворка (неизвестный маршрут, битый JSON, неподдерживаемый метод) сохраняют статус и получают общий код: `NOT_FOUND`, `BAD_REQUEST`, `METHOD_NOT_ALLOWED`, `PAYLOAD_TOO_LARGE`, `UNSUPPORTED_MEDIA_TYPE`, иначе `HTTP_ERROR`.
+- Ответ, не совпавший со своей Zod-схемой, — 500 (ошибка API, а не клиента).
+- `type` — `https://slotly.app/errors/<code-в-kebab-case>`; `title` — по статусу, на русском.
+
 Принципы выбора:
 
 - **400 vs 422:** 400 — запрос некорректен сам по себе; 422 — корректен, но бизнес-правило не позволяет выполнить его сейчас.
@@ -100,6 +107,17 @@ Frontend-валидация — только для UX; источник ист�
 2. `openapi-typescript` → типы в `apps/web`.
 3. `openapi-fetch` → типизированный клиент: пути, параметры, тело, ответы и ошибки (`application/problem+json`).
 4. CI перегенерирует `openapi.json` и типы и падает, если они отличаются от закоммиченных.
+
+Команды: `pnpm --filter @slotly/api openapi:generate` (собирает api и пишет `openapi.json`; нужна валидная конфигурация — `.env` или переменные окружения, к БД не подключается), затем `pnpm --filter @slotly/web api:types` (`src/shared/api/schema.d.ts`). Ошибки в клиенте типизированы как `ProblemDetails`. Ответы с `@ZodResponse` получают в схеме суффикс `_Output` (`Me_Output`) — так nestjs-zod отличает схему ответа от схемы запроса.
+
+## 5a. Аутентификация (реализовано в срезе 1)
+
+- **Все маршруты закрыты по умолчанию**: глобальный `SessionGuard` требует сессию, открытые маршруты помечены `@Public()`. Забытый декоратор приводит к 401, а не к утечке.
+- `POST /auth/register` → `202` без тела — одинаково для нового и занятого email; хэш пароля вычисляется в обоих случаях до `INSERT`.
+- `POST /auth/login` → `204` + `Set-Cookie: __Host-session=…; Max-Age=7776000; Path=/; HttpOnly; Secure; SameSite=Lax`. `Max-Age` равен абсолютному сроку (90 дней); скользящий срок (30 дней) проверяет сервер.
+- `POST /auth/logout` → `204`, открытый маршрут: выход с уже истёкшей сессией тоже очищает cookie.
+- `GET /me` → `{ id, email, name, timezone, emailVerified }`.
+- Rate limit по IP клиента: базовый — 120 запросов в минуту на любой маршрут, вход и регистрация — 10 в минуту.
 
 ## 6. Отложено сознательно
 

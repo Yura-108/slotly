@@ -8,6 +8,8 @@ import * as schema from '../infrastructure/database/schema';
 
 export interface TestDatabase {
   db: Database;
+  /** For starting the whole app against the same database (e2e tests). */
+  connectionUri: string;
   stop: () => Promise<void>;
 }
 
@@ -27,6 +29,7 @@ export async function startTestDatabase(): Promise<TestDatabase> {
 
   return {
     db,
+    connectionUri: container.getConnectionUri(),
     stop: async () => {
       await pool.end();
       await container.stop();
