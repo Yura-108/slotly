@@ -5,6 +5,7 @@ import { HealthController } from './infrastructure/health/health.controller';
 import { HttpModule } from './infrastructure/http/http.module';
 import { LoggingModule } from './infrastructure/logging/logging.module';
 import { AuthModule } from './modules/auth/auth.module';
+import { BookingsModule } from './modules/bookings/bookings.module';
 import { ServicesModule } from './modules/services/services.module';
 import { SchedulingModule } from './modules/scheduling/scheduling.module';
 import { SpecialistsModule } from './modules/specialists/specialists.module';
@@ -22,6 +23,7 @@ import { UsersModule } from './modules/users/users.module';
     SpecialistsModule,
     ServicesModule,
     SchedulingModule,
+    BookingsModule,
   ],
   controllers: [HealthController],
 })

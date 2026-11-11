@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { and, asc, eq, gte, sql } from 'drizzle-orm';
+import { and, asc, eq, gte, lte, sql } from 'drizzle-orm';
 import type { Executor, Tx } from '../../infrastructure/database/database.module';
 import { PgErrorCode, pgConstraint, pgErrorCode } from '../../infrastructure/database/pg-errors';
 import { DayOffExistsError, ScheduleOverlapError } from './domain/errors';
@@ -46,6 +46,26 @@ export class SchedulingRepository {
       if (pgErrorCode(error) === PgErrorCode.exclusionViolation) throw new ScheduleOverlapError();
       throw error;
     }
+  }
+
+  /** Dates "YYYY-MM-DD" of days off between two local dates, both inclusive. */
+  async listDayOffDatesBetween(
+    db: Executor,
+    specialistId: string,
+    fromDate: string,
+    toDate: string,
+  ): Promise<string[]> {
+    const rows = await db
+      .select({ date: daysOff.date })
+      .from(daysOff)
+      .where(
+        and(
+          eq(daysOff.specialistId, specialistId),
+          gte(daysOff.date, fromDate),
+          lte(daysOff.date, toDate),
+        ),
+      );
+    return rows.map((r) => r.date);
   }
 
   async listDaysOffFrom(

@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { and, eq, gt, lte, sql } from 'drizzle-orm';
+import { and, eq, gt, inArray, lte, or, sql } from 'drizzle-orm';
 import type { Database, Tx } from '../../infrastructure/database/database.module';
 import { PgErrorCode, pgErrorCode } from '../../infrastructure/database/pg-errors';
 import {
@@ -51,6 +51,29 @@ export class BookingsRepository {
       )
       .returning({ id: bookings.id });
     return expired.length;
+  }
+
+  /**
+   * Time taken by active bookings overlapping [from, to): confirmed, and pending that has
+   * not expired by `now` — the effective status (ADR-003), even if the expiry job has not
+   * updated the row yet. The status filter repeats the exclusion constraint's predicate so
+   * that its GiST index serves the range search.
+   */
+  async listBusy(
+    db: Executor,
+    params: { specialistId: string; from: Date; to: Date; now: Date },
+  ): Promise<{ start: Date; end: Date }[]> {
+    return db
+      .select({ start: bookings.startAt, end: bookings.endAt })
+      .from(bookings)
+      .where(
+        and(
+          eq(bookings.specialistId, params.specialistId),
+          inArray(bookings.status, ['pending', 'confirmed']),
+          or(eq(bookings.status, 'confirmed'), gt(bookings.expiresAt, params.now)),
+          overlaps(params.from, params.to),
+        ),
+      );
   }
 
   /** @throws BookingConflictError when the interval overlaps an active booking. */

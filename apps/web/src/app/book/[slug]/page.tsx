@@ -1,8 +1,8 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
+import { SlotPicker } from '@/features/booking/components/slot-picker';
 import { getSpecialistPage } from '@/features/booking/server';
-import { formatDuration } from '@/shared/lib/format';
 
 export async function generateMetadata({ params }: PageProps<'/book/[slug]'>): Promise<Metadata> {
   const page = await getSpecialistPage((await params).slug);
@@ -26,25 +26,12 @@ export default async function SpecialistPublicPage({ params }: PageProps<'/book/
       </header>
 
       <section className="flex flex-col gap-3">
-        <h2 className="text-xl font-medium">Услуги</h2>
+        <h2 className="text-xl font-medium">Записаться</h2>
         {services.length === 0 ? (
           <p className="text-slate-600">Специалист пока не добавил услуги.</p>
         ) : (
-          <ul className="flex flex-col gap-3">
-            {services.map((service) => (
-              <li key={service.id} className="rounded-lg border border-slate-200 p-4">
-                <p className="font-medium">{service.name}</p>
-                <p className="text-sm text-slate-600">{formatDuration(service.durationMinutes)}</p>
-                {service.description && (
-                  <p className="mt-1 text-sm text-slate-600">{service.description}</p>
-                )}
-              </li>
-            ))}
-          </ul>
+          <SlotPicker slug={specialist.slug} services={services} />
         )}
-        <p className="text-sm text-slate-500">
-          Выбор времени для записи скоро появится на этой странице.
-        </p>
       </section>
     </main>
   );

@@ -80,6 +80,16 @@ export class ServicesService {
     if (!existing) throw new ServiceNotFoundError();
   }
 
+  /**
+   * An active service of the given specialist, for booking. Archived, foreign and missing
+   * services all look missing to clients (404).
+   */
+  async getActiveOf(specialistId: string, serviceId: string): Promise<Service> {
+    const row = await this.repository.findOwned(this.db, serviceId, specialistId);
+    if (!row || row.archivedAt) throw new ServiceNotFoundError();
+    return toService(row);
+  }
+
   /** What clients see on the public page: active services only. */
   async listPublic(slug: string): Promise<Service[]> {
     const { userId: specialistId } = await this.specialists.getBySlug(slug);
