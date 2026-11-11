@@ -14,6 +14,13 @@ export interface WeeklySchedule {
   intervals: WeeklyInterval[];
 }
 
+/** Inputs for slot calculation: rules and days off of a specialist (bookings module). */
+export interface Availability {
+  intervals: WeeklyInterval[];
+  /** Local dates of days off in the requested range. */
+  daysOff: string[];
+}
+
 export interface DayOff {
   id: string;
   date: string;
@@ -52,6 +59,22 @@ export class SchedulingService {
       await this.repository.replaceIntervals(tx, profile.userId, sorted);
     });
     return { timezone: profile.timezone, intervals: sorted };
+  }
+
+  /**
+   * Rules and days off for slot calculation. Takes the specialist id: the caller has
+   * already resolved the public profile, and this read needs no ownership check.
+   */
+  async getAvailability(
+    specialistId: string,
+    fromDate: string,
+    toDate: string,
+  ): Promise<Availability> {
+    const [intervals, dates] = await Promise.all([
+      this.repository.listIntervals(this.db, specialistId),
+      this.repository.listDayOffDatesBetween(this.db, specialistId, fromDate, toDate),
+    ]);
+    return { intervals, daysOff: dates };
   }
 
   /** Upcoming days off, from today in the specialist's time zone. */

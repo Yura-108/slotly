@@ -292,6 +292,22 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  '/specialists/{slug}/slots': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get: operations['SlotsController_list'];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -465,6 +481,19 @@ export interface components {
        * @example 2026-12-31
        */
       date: string;
+    };
+    Slot_Output: {
+      /**
+       * Format: date-time
+       * @description UTC; display in the viewer time zone
+       */
+      start: string;
+      /** Format: date-time */
+      end: string;
+    };
+    SlotList_Output: {
+      items: components['schemas']['Slot_Output'][];
+      total: number;
     };
   };
   responses: never;
@@ -1583,6 +1612,51 @@ export interface operations {
       };
       /** @description Forbidden (e.g. ORIGIN_NOT_ALLOWED) */
       403: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['ProblemDetails'];
+        };
+      };
+      /** @description Not found */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['ProblemDetails'];
+        };
+      };
+    };
+  };
+  SlotsController_list: {
+    parameters: {
+      query: {
+        serviceId: string;
+        /** @description Range start, inclusive (ISO 8601 with offset) */
+        from: string;
+        /** @description Range end, exclusive (ISO 8601 with offset) */
+        to: string;
+      };
+      header?: never;
+      path: {
+        slug: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['SlotList_Output'];
+        };
+      };
+      /** @description Validation failed (VALIDATION_FAILED) */
+      400: {
         headers: {
           [name: string]: unknown;
         };
