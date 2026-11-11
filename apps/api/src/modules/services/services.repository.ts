@@ -44,6 +44,14 @@ export class ServicesRepository {
       .orderBy(asc(services.createdAt));
   }
 
+  async findActiveById(db: Executor, id: string): Promise<ServiceRow | undefined> {
+    const [service] = await db
+      .select()
+      .from(services)
+      .where(and(eq(services.id, id), isNull(services.archivedAt)));
+    return service;
+  }
+
   async findOwned(db: Executor, id: string, specialistId: string) {
     const [service] = await db.select().from(services).where(owned(id, specialistId));
     return service;

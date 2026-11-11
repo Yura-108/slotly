@@ -58,3 +58,24 @@ export function groupByDay(slots: readonly Slot[], timeZone: string): Map<string
   }
   return days;
 }
+
+/** Russian date and time formats on the viewer's clock. */
+export function slotFormats(timeZone: string) {
+  return {
+    day: new Intl.DateTimeFormat('ru-RU', {
+      timeZone,
+      weekday: 'short',
+      day: 'numeric',
+      month: 'long',
+    }),
+    time: new Intl.DateTimeFormat('ru-RU', { timeZone, hour: '2-digit', minute: '2-digit' }),
+  };
+}
+
+export type SlotFormats = ReturnType<typeof slotFormats>;
+
+/** "чт, 19 ноября, 14:00–15:00". */
+export function slotLabel(slot: Slot, formats: SlotFormats): string {
+  const start = new Date(slot.start);
+  return `${formats.day.format(start)}, ${formats.time.format(start)}–${formats.time.format(new Date(slot.end))}`;
+}

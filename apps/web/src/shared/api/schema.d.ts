@@ -308,6 +308,22 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  '/bookings': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    post: operations['BookingsController_create'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -494,6 +510,33 @@ export interface components {
     SlotList_Output: {
       items: components['schemas']['Slot_Output'][];
       total: number;
+    };
+    CreateBookingRequest: {
+      /** Format: uuid */
+      serviceId: string;
+      /**
+       * Format: date-time
+       * @description Slot start exactly as returned by GET /specialists/{slug}/slots
+       * @example 2026-11-19T11:00:00.000Z
+       */
+      startAt: string;
+    };
+    Booking_Output: {
+      /** Format: uuid */
+      id: string;
+      /** @enum {string} */
+      status: 'pending' | 'confirmed' | 'rejected' | 'cancelled' | 'expired';
+      serviceName: string;
+      /** Format: date-time */
+      startAt: string;
+      /** Format: date-time */
+      endAt: string;
+      /** @description Pending only: when the request expires without an answer */
+      expiresAt: string | null;
+      specialist: {
+        slug: string;
+        displayName: string;
+      };
     };
   };
   responses: never;
@@ -1666,6 +1709,92 @@ export interface operations {
       };
       /** @description Not found */
       404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['ProblemDetails'];
+        };
+      };
+    };
+  };
+  BookingsController_create: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['CreateBookingRequest'];
+      };
+    };
+    responses: {
+      201: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['Booking_Output'];
+        };
+      };
+      /** @description Validation failed (VALIDATION_FAILED) */
+      400: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['ProblemDetails'];
+        };
+      };
+      /** @description Not authenticated */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['ProblemDetails'];
+        };
+      };
+      /** @description Forbidden (e.g. ORIGIN_NOT_ALLOWED) */
+      403: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['ProblemDetails'];
+        };
+      };
+      /** @description Not found */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['ProblemDetails'];
+        };
+      };
+      /** @description Conflict with a concurrent change */
+      409: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['ProblemDetails'];
+        };
+      };
+      /** @description Business rule violation */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['ProblemDetails'];
+        };
+      };
+      /** @description Rate limited (RATE_LIMITED), see Retry-After */
+      429: {
         headers: {
           [name: string]: unknown;
         };

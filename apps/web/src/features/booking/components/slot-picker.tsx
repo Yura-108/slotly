@@ -1,13 +1,24 @@
 'use client';
 
 import { keepPreviousData, useQuery } from '@tanstack/react-query';
+import Link from 'next/link';
 import { useMemo, useState } from 'react';
 import { api } from '@/shared/api/client';
 import { problemMessage } from '@/shared/api/errors';
 import { formatDuration } from '@/shared/lib/format';
 import { useBrowserTimeZone } from '@/shared/lib/use-browser-time-zone';
-import { FormAlert } from '@/shared/ui/form';
-import { dateKey, groupByDay, rangeOf, type Slot, weekDays } from '../lib/slot-grid';
+import { FormAlert, Notice } from '@/shared/ui/form';
+import {
+  dateKey,
+  groupByDay,
+  rangeOf,
+  type Slot,
+  type SlotFormats,
+  slotFormats,
+  slotLabel,
+  weekDays,
+} from '../lib/slot-grid';
+import { BookingConfirm, type CreatedBooking, type Viewer } from './booking-confirm';
 
 interface ServiceOption {
   id: string;
@@ -16,19 +27,33 @@ interface ServiceOption {
   durationMinutes: number;
 }
 
+type Outcome =
+  { kind: 'booked'; booking: CreatedBooking; label: string } | { kind: 'gone'; message: string };
+
 /**
- * Service choice and the week of free slots, in the viewer's time zone. Rendered only in
- * the browser: the server does not know the viewer's zone (frontend.md §6).
+ * Service choice, the week of free slots in the viewer's time zone, and booking. Rendered
+ * only in the browser: the server does not know the viewer's zone (frontend.md §6).
  */
-export function SlotPicker({ slug, services }: { slug: string; services: ServiceOption[] }) {
+export function SlotPicker({
+  slug,
+  services,
+  viewer,
+}: {
+  slug: string;
+  services: ServiceOption[];
+  viewer: Viewer;
+}) {
   const timeZone = useBrowserTimeZone();
   const [serviceId, setServiceId] = useState(services[0]?.id ?? '');
   const [weekOffset, setWeekOffset] = useState(0);
+  const [selected, setSelected] = useState<Slot | null>(null);
+  const [outcome, setOutcome] = useState<Outcome | null>(null);
   // Fixed for the page's life: "this week" must not move while the user browses
   const [today] = useState(() => new Date());
 
   const days = useMemo(() => weekDays(today, weekOffset), [today, weekOffset]);
   const range = useMemo(() => rangeOf(days), [days]);
+  const formats = useMemo(() => (timeZone ? slotFormats(timeZone) : null), [timeZone]);
 
   const slots = useQuery({
     queryKey: ['slots', slug, serviceId, range.from, range.to],
@@ -44,6 +69,11 @@ export function SlotPicker({ slug, services }: { slug: string; services: Service
     placeholderData: keepPreviousData,
   });
 
+  const select = (slot: Slot | null) => {
+    setSelected(slot);
+    setOutcome(null);
+  };
+
   return (
     <div className="flex flex-col gap-6">
       <fieldset className="flex flex-col gap-2">
@@ -58,7 +88,10 @@ export function SlotPicker({ slug, services }: { slug: string; services: Service
               name="service"
               value={service.id}
               checked={service.id === serviceId}
-              onChange={() => setServiceId(service.id)}
+              onChange={() => {
+                setServiceId(service.id);
+                select(null);
+              }}
               className="mt-1"
             />
             <span className="flex flex-col">
@@ -74,52 +107,87 @@ export function SlotPicker({ slug, services }: { slug: string; services: Service
         ))}
       </fieldset>
 
-      {timeZone === null ? (
+      {timeZone === null || formats === null ? (
         <p className="text-slate-600">Загружаем свободное время…</p>
       ) : (
-        <WeekView
-          days={days}
-          timeZone={timeZone}
-          slots={slots.data}
-          loading={slots.isPending || slots.isPlaceholderData}
-          error={slots.isError ? problemMessage(slots.error) : null}
-          weekOffset={weekOffset}
-          onWeekChange={setWeekOffset}
-        />
+        <>
+          <WeekView
+            days={days}
+            timeZone={timeZone}
+            formats={formats}
+            slots={slots.data}
+            loading={slots.isPending || slots.isPlaceholderData}
+            error={slots.isError ? problemMessage(slots.error) : null}
+            selected={selected}
+            onSelect={select}
+            weekOffset={weekOffset}
+            onWeekChange={(offset) => {
+              setWeekOffset(offset);
+              select(null);
+            }}
+          />
+          {outcome?.kind === 'booked' && <BookedNotice {...outcome} />}
+          {outcome?.kind === 'gone' && <FormAlert>{outcome.message}</FormAlert>}
+          {selected && (
+            <BookingConfirm
+              key={selected.start}
+              slug={slug}
+              serviceId={serviceId}
+              slot={selected}
+              label={slotLabel(selected, formats)}
+              viewer={viewer}
+              onBooked={(booking) => {
+                setSelected(null);
+                setOutcome({ kind: 'booked', booking, label: slotLabel(selected, formats) });
+              }}
+              onSlotGone={(message) => {
+                setSelected(null);
+                setOutcome({ kind: 'gone', message });
+              }}
+            />
+          )}
+        </>
       )}
     </div>
+  );
+}
+
+function BookedNotice({ booking, label }: { booking: CreatedBooking; label: string }) {
+  return (
+    <Notice>
+      {booking.status === 'confirmed'
+        ? `Вы записаны: ${booking.serviceName}, ${label}. `
+        : `Заявка отправлена: ${booking.serviceName}, ${label}. Специалист ответит в течение 24 часов, мы сообщим о решении письмом. `}
+      <Link href="/bookings" className="font-medium underline">
+        Мои записи
+      </Link>
+    </Notice>
   );
 }
 
 function WeekView({
   days,
   timeZone,
+  formats,
   slots,
   loading,
   error,
+  selected,
+  onSelect,
   weekOffset,
   onWeekChange,
 }: {
   days: Date[];
   timeZone: string;
+  formats: SlotFormats;
   slots: Slot[] | undefined;
   loading: boolean;
   error: string | null;
+  selected: Slot | null;
+  onSelect: (slot: Slot) => void;
   weekOffset: number;
   onWeekChange: (offset: number) => void;
 }) {
-  const formats = useMemo(
-    () => ({
-      day: new Intl.DateTimeFormat('ru-RU', {
-        timeZone,
-        weekday: 'short',
-        day: 'numeric',
-        month: 'long',
-      }),
-      time: new Intl.DateTimeFormat('ru-RU', { timeZone, hour: '2-digit', minute: '2-digit' }),
-    }),
-    [timeZone],
-  );
   const byDay = useMemo(() => groupByDay(slots ?? [], timeZone), [slots, timeZone]);
   const first = days[0];
   const last = days[days.length - 1];
@@ -162,14 +230,21 @@ function WeekView({
                 <p className="text-sm text-slate-500">{slots ? 'Нет свободного времени' : '…'}</p>
               ) : (
                 <ul className="flex flex-wrap gap-2">
-                  {daySlots.map((slot) => (
-                    <li
-                      key={slot.start}
-                      className="rounded-md border border-slate-300 px-3 py-1 text-sm tabular-nums"
-                    >
-                      {formats.time.format(new Date(slot.start))}
-                    </li>
-                  ))}
+                  {daySlots.map((slot) => {
+                    const isSelected = slot.start === selected?.start;
+                    return (
+                      <li key={slot.start}>
+                        <button
+                          type="button"
+                          aria-pressed={isSelected}
+                          onClick={() => onSelect(slot)}
+                          className="rounded-md border border-slate-300 px-3 py-1 text-sm tabular-nums hover:border-slate-900 aria-pressed:border-slate-900 aria-pressed:bg-slate-900 aria-pressed:text-white"
+                        >
+                          {formats.time.format(new Date(slot.start))}
+                        </button>
+                      </li>
+                    );
+                  })}
                 </ul>
               )}
             </li>

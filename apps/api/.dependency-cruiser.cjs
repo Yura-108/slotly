@@ -11,7 +11,7 @@ const moduleDependencies = {
   specialists: ['users'],
   services: ['specialists'],
   scheduling: ['specialists'],
-  bookings: ['scheduling', 'services', 'specialists', 'notifications'],
+  bookings: ['users', 'scheduling', 'services', 'specialists', 'notifications'],
   notifications: [],
 };
 

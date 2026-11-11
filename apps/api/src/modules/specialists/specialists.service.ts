@@ -98,6 +98,13 @@ export class SpecialistsService {
     return profile;
   }
 
+  /** A specialist someone books, by id (the owner of a service). */
+  async getById(userId: string): Promise<SpecialistProfile> {
+    const profile = await this.findOwn(userId);
+    if (!profile) throw new SpecialistNotFoundError();
+    return profile;
+  }
+
   async getBySlug(slug: string): Promise<SpecialistProfile> {
     const row = await this.repository.findBySlug(this.db, slug);
     if (!row) throw new SpecialistNotFoundError();
