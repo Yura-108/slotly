@@ -58,6 +58,34 @@ export const outboxMessageSchema = z.discriminatedUnion('type', [
       status: z.enum(['pending', 'confirmed']),
     }),
   }),
+  z.object({
+    // FR-61: the specialist confirmed a request
+    type: z.literal('booking.confirmed'),
+    payload: z.object({ ...recipient, ...bookingTime, specialistName: z.string() }),
+  }),
+  z.object({
+    // FR-61: the specialist rejected a request
+    type: z.literal('booking.rejected'),
+    payload: z.object({
+      ...recipient,
+      ...bookingTime,
+      specialistName: z.string(),
+      reason: z.string().optional(),
+    }),
+  }),
+  z.object({
+    // FR-60/61: to the other party — the client cancelled (to the specialist) or the
+    // specialist cancelled (to the client)
+    type: z.literal('booking.cancelled'),
+    payload: z.object({
+      ...recipient,
+      ...bookingTime,
+      cancelledBy: z.enum(['client', 'specialist']),
+      /** Who cancelled, as the recipient knows them. */
+      byName: z.string(),
+      reason: z.string().optional(),
+    }),
+  }),
 ]);
 
 export type OutboxMessage = z.infer<typeof outboxMessageSchema>;

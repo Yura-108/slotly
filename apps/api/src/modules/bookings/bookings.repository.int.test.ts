@@ -33,6 +33,7 @@ describe('BookingsRepository (PostgreSQL)', () => {
       serviceName: specialist.serviceName,
       startAt,
       endAt: new Date(startAt.getTime() + HOUR),
+      cancelDeadlineAt: startAt,
       status: 'confirmed',
       ...overrides,
     });

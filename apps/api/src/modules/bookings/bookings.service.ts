@@ -1,14 +1,28 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { AppConfig } from '../../infrastructure/config/config.schema';
 import { DATABASE, type Database } from '../../infrastructure/database/database.module';
-import { NotificationsService } from '../notifications/notifications.service';
+import { NotificationsService, type OutboxMessage } from '../notifications/notifications.service';
 import { ServicesService } from '../services/services.service';
-import { SpecialistsService } from '../specialists/specialists.service';
+import { type SpecialistCard, SpecialistsService } from '../specialists/specialists.service';
 import { UsersService } from '../users/users.service';
 import { BookingsRepository } from './bookings.repository';
-import type { BookingRow, BookingStatus } from './bookings.schema';
+import type { BookingRow, NewBookingRow } from './bookings.schema';
 import { initialStatus, PENDING_LIMIT, pendingExpiresAt } from './domain/booking-policy';
 import {
+  allowedActions,
+  type BookingAction,
+  type BookingStatus,
+  cancelDeadlineAt,
+  effectiveStatus,
+  type Party,
+  refusal,
+} from './domain/booking-status';
+import {
+  BookingActionForbiddenError,
+  BookingAlreadyStartedError,
+  BookingNotFoundError,
+  BookingStatusChangedError,
+  CancelDeadlinePassedError,
   CannotBookSelfError,
   EmailNotVerifiedError,
   PendingLimitReachedError,
@@ -18,15 +32,31 @@ import { SlotsService } from './slots.service';
 
 const MINUTE_MS = 60_000;
 
-export interface Booking {
+/** A booking as one of its parties sees it, with what that party can do now (ADR-009). */
+export interface BookingView {
   id: string;
+  /** Effective: an overdue request is "expired" even before the row is updated. */
   status: BookingStatus;
   serviceName: string;
   startAt: Date;
   endAt: Date;
-  /** Only for pending: when the request expires without an answer. */
   expiresAt: Date | null;
-  specialist: { slug: string; displayName: string };
+  cancelDeadlineAt: Date;
+  cancelledBy: Party | null;
+  statusReason: string | null;
+  /** The viewer's side of the booking. */
+  party: Party;
+  specialist: SpecialistCard;
+  client: { name: string };
+  allowedActions: BookingAction[];
+}
+
+export interface BookingListQuery {
+  party: Party;
+  scope: 'upcoming' | 'past';
+  status?: BookingStatus;
+  limit: number;
+  offset: number;
 }
 
 /** Public API of the bookings module (ADR-006). */
@@ -53,7 +83,7 @@ export class BookingsService {
     clientId: string,
     input: { serviceId: string; startAt: Date },
     now = new Date(),
-  ): Promise<Booking> {
+  ): Promise<BookingView> {
     const client = await this.users.getProfile(clientId);
     if (!client.emailVerified) throw new EmailNotVerifiedError();
 
@@ -95,14 +125,11 @@ export class BookingsService {
         endAt,
         status,
         expiresAt: status === 'pending' ? pendingExpiresAt(now, startAt) : null,
+        // The rule of this moment becomes part of the agreement (FR-53)
+        cancelDeadlineAt: cancelDeadlineAt(startAt, specialist.clientCancelDeadlineHours),
       });
 
-      const time = {
-        serviceName: service.name,
-        startAt: startAt.toISOString(),
-        endAt: endAt.toISOString(),
-        bookingsUrl: `${this.config.appOrigin}/bookings`,
-      };
+      const time = this.emailTime(created);
       await this.notifications.enqueue(tx, {
         type: 'booking.new_for_specialist',
         payload: {
@@ -128,18 +155,191 @@ export class BookingsService {
       return created;
     });
 
-    return toBooking(row, specialist);
+    return toView(row, 'client', specialist, client.name, now);
+  }
+
+  async get(userId: string, bookingId: string, now = new Date()): Promise<BookingView> {
+    const row = await this.repository.findForParty(this.db, bookingId, userId);
+    if (!row) throw new BookingNotFoundError();
+    const [view] = await this.views([row], partyOf(row, userId), now);
+    if (!view) throw new BookingNotFoundError();
+    return view;
+  }
+
+  /** FR-55: the user's bookings as client or as specialist. */
+  async list(
+    userId: string,
+    query: BookingListQuery,
+    now = new Date(),
+  ): Promise<{ items: BookingView[]; total: number }> {
+    const { rows, total } = await this.repository.list(this.db, { userId, ...query, now });
+    return { items: await this.views(rows, query.party, now), total };
+  }
+
+  /**
+   * Confirm, reject or cancel (FR-52, FR-53). The domain decides whether the action is
+   * allowed for this party now; the compare-and-set UPDATE then applies it only if the
+   * status is still the one that was checked (data-model.md §4) — otherwise 409.
+   */
+  async act(
+    userId: string,
+    bookingId: string,
+    action: BookingAction,
+    reason: string | null,
+    now = new Date(),
+  ): Promise<BookingView> {
+    const row = await this.repository.findForParty(this.db, bookingId, userId);
+    if (!row) throw new BookingNotFoundError();
+    const party = partyOf(row, userId);
+    throwRefusal(refusal(row, party, action, now));
+
+    const [client, specialistUser, specialist] = await Promise.all([
+      this.users.getProfile(row.clientId),
+      this.users.getProfile(row.specialistId),
+      this.specialists.getById(row.specialistId),
+    ]);
+
+    const updated = await this.db.transaction(async (tx) => {
+      const changed = await this.repository.transitionStatus(tx, {
+        id: row.id,
+        from: row.status,
+        now,
+        set: transitionChanges(action, party, reason),
+      });
+      if (!changed) throw new BookingStatusChangedError();
+
+      const time = this.emailTime(changed);
+      const withReason = reason ? { reason } : {};
+      const toClient = {
+        ...time,
+        to: client.email,
+        name: client.name,
+        timeZone: client.timezone,
+      };
+      let message: OutboxMessage;
+      if (action === 'confirm') {
+        message = {
+          type: 'booking.confirmed',
+          payload: { ...toClient, specialistName: specialist.displayName },
+        };
+      } else if (action === 'reject') {
+        message = {
+          type: 'booking.rejected',
+          payload: { ...toClient, specialistName: specialist.displayName, ...withReason },
+        };
+      } else if (party === 'specialist') {
+        message = {
+          type: 'booking.cancelled',
+          payload: {
+            ...toClient,
+            cancelledBy: 'specialist',
+            byName: specialist.displayName,
+            ...withReason,
+          },
+        };
+      } else {
+        message = {
+          type: 'booking.cancelled',
+          payload: {
+            ...time,
+            to: specialistUser.email,
+            name: specialist.displayName,
+            timeZone: specialist.timezone,
+            cancelledBy: 'client',
+            byName: client.name,
+            ...withReason,
+          },
+        };
+      }
+      await this.notifications.enqueue(tx, message);
+      return changed;
+    });
+
+    return toView(updated, party, specialist, client.name, now);
+  }
+
+  private emailTime(row: BookingRow) {
+    return {
+      serviceName: row.serviceName,
+      startAt: row.startAt.toISOString(),
+      endAt: row.endAt.toISOString(),
+      bookingsUrl: `${this.config.appOrigin}/bookings`,
+    };
+  }
+
+  /** Names of the other parties come from their owners in one query each, not per row. */
+  private async views(rows: BookingRow[], party: Party, now: Date): Promise<BookingView[]> {
+    const [cards, names] = await Promise.all([
+      this.specialists.getCards(rows.map((r) => r.specialistId)),
+      this.users.getNames(rows.map((r) => r.clientId)),
+    ]);
+    return rows.map((row) =>
+      toView(
+        row,
+        party,
+        cards.get(row.specialistId) ?? { slug: '', displayName: '' },
+        names.get(row.clientId) ?? '',
+        now,
+      ),
+    );
   }
 }
 
-function toBooking(row: BookingRow, specialist: { slug: string; displayName: string }): Booking {
+const partyOf = (row: BookingRow, userId: string): Party =>
+  row.clientId === userId ? 'client' : 'specialist';
+
+function throwRefusal(reason: ReturnType<typeof refusal>): void {
+  switch (reason) {
+    case null:
+      return;
+    case 'forbidden':
+      throw new BookingActionForbiddenError();
+    case 'started':
+      throw new BookingAlreadyStartedError();
+    case 'deadline_passed':
+      throw new CancelDeadlinePassedError();
+    case 'status_changed':
+      throw new BookingStatusChangedError();
+  }
+}
+
+/** Column changes of each transition; the CHECKs keep expires_at and cancelled_by in sync. */
+function transitionChanges(
+  action: BookingAction,
+  party: Party,
+  reason: string | null,
+): Pick<NewBookingRow, 'status'> &
+  Partial<Pick<NewBookingRow, 'cancelledBy' | 'statusReason' | 'expiresAt'>> {
+  switch (action) {
+    case 'confirm':
+      return { status: 'confirmed', expiresAt: null };
+    case 'reject':
+      return { status: 'rejected', expiresAt: null, statusReason: reason };
+    case 'cancel':
+      return { status: 'cancelled', expiresAt: null, cancelledBy: party, statusReason: reason };
+  }
+}
+
+function toView(
+  row: BookingRow,
+  party: Party,
+  specialist: SpecialistCard,
+  clientName: string,
+  now: Date,
+): BookingView {
   return {
     id: row.id,
-    status: row.status,
+    status: effectiveStatus(row, now),
     serviceName: row.serviceName,
     startAt: row.startAt,
     endAt: row.endAt,
     expiresAt: row.expiresAt,
+    cancelDeadlineAt: row.cancelDeadlineAt,
+    cancelledBy: row.cancelledBy,
+    statusReason: row.statusReason,
+    party,
     specialist: { slug: specialist.slug, displayName: specialist.displayName },
+    client: { name: clientName },
+    allowedActions: allowedActions(row, party, now),
   };
 }

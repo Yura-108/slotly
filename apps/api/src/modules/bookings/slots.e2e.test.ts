@@ -95,6 +95,7 @@ describe('GET /specialists/:slug/slots', () => {
       clientId: client.userId,
       serviceId: owner.serviceId,
       serviceName: 'Консультация',
+      cancelDeadlineAt: new Date(0), // not what these tests are about
       startAt: new Date(slot.start),
       endAt: new Date(slot.end),
       status,
@@ -129,6 +130,7 @@ describe('GET /specialists/:slug/slots', () => {
       clientId: client.userId,
       serviceId: owner.serviceId,
       serviceName: 'Консультация',
+      cancelDeadlineAt: new Date(0), // not what these tests are about
       startAt: to,
       endAt: new Date(to.getTime() + HOUR / 2),
       status: 'confirmed',

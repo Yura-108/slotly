@@ -105,5 +105,44 @@ export function renderEmail(message: OutboxMessage): RenderedEmail {
         { label: 'Мои записи', url: p.bookingsUrl },
       );
     }
+    case 'booking.confirmed': {
+      const p = message.payload;
+      return email(
+        `Запись подтверждена: ${p.serviceName}`,
+        [
+          greeting(p.name),
+          `${p.specialistName} подтверждает запись на услугу «${p.serviceName}»: ${formatBookingTime(p.startAt, p.endAt, p.timeZone)}.`,
+        ],
+        { label: 'Мои записи', url: p.bookingsUrl },
+      );
+    }
+    case 'booking.rejected': {
+      const p = message.payload;
+      return email(
+        `Заявка отклонена: ${p.serviceName}`,
+        [
+          greeting(p.name),
+          `${p.specialistName} не может принять заявку на услугу «${p.serviceName}»: ${formatBookingTime(p.startAt, p.endAt, p.timeZone)}.`,
+          ...(p.reason ? [`Причина: ${p.reason}`] : []),
+          'Вы можете выбрать другое время на странице специалиста.',
+        ],
+        { label: 'Мои записи', url: p.bookingsUrl },
+      );
+    }
+    case 'booking.cancelled': {
+      const p = message.payload;
+      return email(
+        `Запись отменена: ${p.serviceName}`,
+        [
+          greeting(p.name),
+          `${p.byName} отменяет запись на услугу «${p.serviceName}»: ${formatBookingTime(p.startAt, p.endAt, p.timeZone)}.`,
+          ...(p.reason ? [`Причина: ${p.reason}`] : []),
+          p.cancelledBy === 'client'
+            ? 'Это время снова свободно для записи.'
+            : 'Вы можете выбрать другое время на странице специалиста.',
+        ],
+        { label: 'Мои записи', url: p.bookingsUrl },
+      );
+    }
   }
 }

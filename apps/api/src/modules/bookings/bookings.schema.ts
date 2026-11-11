@@ -38,6 +38,9 @@ export const bookings = pgTable(
     endAt: timestamptz('end_at').notNull(),
     status: bookingStatus('status').notNull(),
     expiresAt: timestamptz('expires_at'),
+    // Snapshot of the specialist's client cancellation rule at booking time (FR-53):
+    // the client agreed to the terms of that moment, later changes do not apply
+    cancelDeadlineAt: timestamptz('cancel_deadline_at').notNull(),
     cancelledBy: bookingActor('cancelled_by'),
     statusReason: text('status_reason'),
     ...timestampColumns(),
@@ -53,6 +56,7 @@ export const bookings = pgTable(
       'bookings_cancelled_by_only_cancelled',
       sql`(${t.status} = 'cancelled') = (${t.cancelledBy} is not null)`,
     ),
+    check('bookings_cancel_deadline_not_after_start', sql`${t.cancelDeadlineAt} <= ${t.startAt}`),
     check('bookings_status_reason_length', sql`char_length(${t.statusReason}) <= 500`),
     index('bookings_client_start_idx').on(t.clientId, t.startAt),
     index('bookings_specialist_start_idx').on(t.specialistId, t.startAt),

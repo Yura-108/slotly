@@ -68,16 +68,16 @@
 
 Выполняется в одном глобальном exception filter.
 
-| Класс ошибки           | HTTP | Примеры `code`                                                                                                          |
-| ---------------------- | ---- | ----------------------------------------------------------------------------------------------------------------------- |
-| `ValidationError`      | 400  | `VALIDATION_FAILED`                                                                                                     |
-| `UnauthenticatedError` | 401  | `UNAUTHENTICATED`, `INVALID_CREDENTIALS`                                                                                |
-| `ForbiddenError`       | 403  | `EMAIL_NOT_VERIFIED`, `SPECIALIST_PROFILE_REQUIRED`, `ORIGIN_NOT_ALLOWED`                                               |
-| `NotFoundError`        | 404  | `NOT_FOUND` (в том числе чужой ресурс)                                                                                  |
-| `ConflictError`        | 409  | `BOOKING_SLOT_TAKEN`, `BOOKING_STATUS_CHANGED`, `SLUG_TAKEN`                                                            |
-| `BusinessRuleError`    | 422  | `CANCEL_DEADLINE_PASSED`, `PENDING_LIMIT_REACHED`, `SLOT_NOT_AVAILABLE`, `CANNOT_BOOK_SELF`, `TOKEN_INVALID_OR_EXPIRED` |
-| rate limit             | 429  | `RATE_LIMITED` (+ `Retry-After`)                                                                                        |
-| прочее                 | 500  | `INTERNAL_ERROR`                                                                                                        |
+| Класс ошибки           | HTTP | Примеры `code`                                                                                                                                     |
+| ---------------------- | ---- | -------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `ValidationError`      | 400  | `VALIDATION_FAILED`                                                                                                                                |
+| `UnauthenticatedError` | 401  | `UNAUTHENTICATED`, `INVALID_CREDENTIALS`                                                                                                           |
+| `ForbiddenError`       | 403  | `EMAIL_NOT_VERIFIED`, `SPECIALIST_PROFILE_REQUIRED`, `ORIGIN_NOT_ALLOWED`, `BOOKING_ACTION_FORBIDDEN`                                              |
+| `NotFoundError`        | 404  | `NOT_FOUND` (в том числе чужой ресурс)                                                                                                             |
+| `ConflictError`        | 409  | `BOOKING_SLOT_TAKEN`, `BOOKING_STATUS_CHANGED`, `SLUG_TAKEN`                                                                                       |
+| `BusinessRuleError`    | 422  | `CANCEL_DEADLINE_PASSED`, `PENDING_LIMIT_REACHED`, `SLOT_NOT_AVAILABLE`, `CANNOT_BOOK_SELF`, `TOKEN_INVALID_OR_EXPIRED`, `BOOKING_ALREADY_STARTED` |
+| rate limit             | 429  | `RATE_LIMITED` (+ `Retry-After`)                                                                                                                   |
+| прочее                 | 500  | `INTERNAL_ERROR`                                                                                                                                   |
 
 Реализация (`apps/api/src/infrastructure/http/problem-details.ts`):
 
@@ -160,6 +160,15 @@ Frontend-валидация — только для UX; источник ист�
 - `403 EMAIL_NOT_VERIFIED` — у клиента не подтверждён email; `422 CANNOT_BOOK_SELF`; `422 PENDING_LIMIT_REACHED` — уже 3 активные заявки к этому специалисту (только при создании `pending`); `404 NOT_FOUND` — услуга архивная или не существует.
 - Rate limit — 20 запросов в минуту с адреса клиента.
 - В той же транзакции в outbox ставятся два письма: специалисту (`booking.new_for_specialist`, с пометкой о подтверждении) и клиенту (`booking.created_for_client`). Время в каждом письме — в поясе получателя.
+
+## 5g. Управление бронями (срез 7)
+
+- Ответ с бронью (`Booking`) — с точки зрения смотрящего: `party` (`client` | `specialist`), `status` — **эффективный** (просроченная заявка — `expired`), `cancelDeadlineAt` (снимок на момент записи), `cancelledBy`, `statusReason`, `specialist { slug, displayName }`, `client { name }`, `allowedActions`.
+- `allowedActions` и проверка действия — одна доменная функция (`bookings/domain/booking-status.ts`): до начала брони; `pending` — специалисту `confirm`, `reject`, `cancel`, клиенту `cancel`; `confirmed` — специалисту `cancel`, клиенту `cancel` до `cancelDeadlineAt`; иначе ничего.
+- `GET /bookings/{id}` — только участникам; чужая бронь — `404`.
+- `POST /bookings/{id}/confirm` (без тела), `/reject` и `/cancel` (`{ reason?: string ≤ 500 }`, пустая строка — нет причины) → `200 Booking`. Отказы: `403 BOOKING_ACTION_FORBIDDEN` (клиент подтверждает или отклоняет), `422 CANCEL_DEADLINE_PASSED`, `422 BOOKING_ALREADY_STARTED`, `409 BOOKING_STATUS_CHANGED` (статус уже другой или проиграна гонка compare-and-set).
+- Письмо — второй стороне, в той же транзакции: `booking.confirmed`, `booking.rejected` (с причиной), `booking.cancelled` (кто отменил и причина).
+- `GET /me/bookings?as=client|specialist&scope=upcoming|past&status=&limit=&offset=` → `{ items, total }`. Предстоящие — `end_at > now`, ближайшие сначала; прошедшие — последние сначала. Фильтр по эффективному статусу. Не специалист с `as=specialist` получает пустой список.
 
 ## 6. Отложено сознательно
 

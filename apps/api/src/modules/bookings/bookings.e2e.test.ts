@@ -210,6 +210,7 @@ describe('POST /bookings', () => {
         clientId: old.userId,
         serviceId: owner.serviceId,
         serviceName: 'Консультация',
+        cancelDeadlineAt: new Date(0), // not what these tests are about
         startAt: new Date(slot.start),
         endAt: new Date(slot.end),
         status: 'pending',

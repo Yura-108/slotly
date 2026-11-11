@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { and, count, eq, gt, inArray, lte, or, sql } from 'drizzle-orm';
+import { and, asc, count, desc, eq, gt, inArray, lte, or, sql } from 'drizzle-orm';
 import type { Database, Tx } from '../../infrastructure/database/database.module';
 import { PgErrorCode, pgErrorCode } from '../../infrastructure/database/pg-errors';
 import {
@@ -14,6 +14,14 @@ type Executor = Database | Tx;
 
 const overlaps = (startAt: Date, endAt: Date) =>
   sql`tstzrange(${bookings.startAt}, ${bookings.endAt}, '[)') && tstzrange(${startAt}::timestamptz, ${endAt}::timestamptz, '[)')`;
+
+/** SQL twin of the domain's effectiveStatus (ADR-003): pending past its expiry is expired. */
+function effectiveStatusIs(status: BookingStatus, now: Date) {
+  const overdue = and(eq(bookings.status, 'pending'), lte(bookings.expiresAt, now));
+  if (status === 'pending') return and(eq(bookings.status, 'pending'), gt(bookings.expiresAt, now));
+  if (status === 'expired') return or(eq(bookings.status, 'expired'), overdue);
+  return eq(bookings.status, status);
+}
 
 @Injectable()
 export class BookingsRepository {
@@ -97,6 +105,62 @@ export class BookingsRepository {
         ),
       );
     return row?.n ?? 0;
+  }
+
+  /** A booking the user takes part in, as client or specialist; undefined otherwise (IDOR). */
+  async findForParty(db: Executor, id: string, userId: string): Promise<BookingRow | undefined> {
+    const [row] = await db
+      .select()
+      .from(bookings)
+      .where(
+        and(
+          eq(bookings.id, id),
+          or(eq(bookings.clientId, userId), eq(bookings.specialistId, userId)),
+        ),
+      );
+    return row;
+  }
+
+  /**
+   * A page of the user's bookings as client or as specialist. Upcoming: not yet ended,
+   * soonest first; past: ended, latest first. The status filter uses the effective status,
+   * so an overdue request is found under "expired", not "pending".
+   */
+  async list(
+    db: Executor,
+    params: {
+      userId: string;
+      party: 'client' | 'specialist';
+      scope: 'upcoming' | 'past';
+      status?: BookingStatus;
+      limit: number;
+      offset: number;
+      now: Date;
+    },
+  ): Promise<{ rows: BookingRow[]; total: number }> {
+    const { now } = params;
+    const owner =
+      params.party === 'client'
+        ? eq(bookings.clientId, params.userId)
+        : eq(bookings.specialistId, params.userId);
+    const scope = params.scope === 'upcoming' ? gt(bookings.endAt, now) : lte(bookings.endAt, now);
+    const where = and(
+      owner,
+      scope,
+      params.status ? effectiveStatusIs(params.status, now) : undefined,
+    );
+
+    const [rows, [counted]] = await Promise.all([
+      db
+        .select()
+        .from(bookings)
+        .where(where)
+        .orderBy(params.scope === 'upcoming' ? asc(bookings.startAt) : desc(bookings.startAt))
+        .limit(params.limit)
+        .offset(params.offset),
+      db.select({ n: count() }).from(bookings).where(where),
+    ]);
+    return { rows, total: counted?.n ?? 0 };
   }
 
   /** @throws BookingConflictError when the interval overlaps an active booking. */

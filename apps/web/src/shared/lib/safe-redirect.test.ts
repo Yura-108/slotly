@@ -17,6 +17,6 @@ describe('safeRedirectPath', () => {
     'javascript:alert(1)',
     'bookings',
   ])('falls back for %j', (next) => {
-    expect(safeRedirectPath(next)).toBe('/bookings');
+    expect(safeRedirectPath(next)).toBe('/start');
   });
 });

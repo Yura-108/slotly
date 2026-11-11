@@ -107,3 +107,53 @@ describe('booking emails', () => {
     expect(email.subject).toBe('Вы записаны: <script>x</script>'); // a header, not HTML
   });
 });
+
+describe('booking status emails', () => {
+  const base = {
+    to: 'c@example.test',
+    serviceName: 'Консультация',
+    startAt: '2026-11-19T11:00:00.000Z',
+    endAt: '2026-11-19T12:00:00.000Z',
+    timeZone: 'UTC',
+    bookingsUrl: 'https://slotly.example/bookings',
+  };
+
+  it('includes the reason only when it was given, escaped in HTML', () => {
+    const withReason = renderEmail({
+      type: 'booking.rejected',
+      payload: { ...base, specialistName: 'Ирина', reason: 'Заболела <b>сильно</b>' },
+    });
+    const without = renderEmail({
+      type: 'booking.rejected',
+      payload: { ...base, specialistName: 'Ирина' },
+    });
+    expect(withReason.text).toContain('Причина: Заболела <b>сильно</b>');
+    expect(withReason.html).toContain('Причина: Заболела &lt;b&gt;сильно&lt;/b&gt;');
+    expect(without.text).not.toContain('Причина');
+  });
+
+  it('tells each side what a cancellation means for them', () => {
+    const toSpecialist = renderEmail({
+      type: 'booking.cancelled',
+      payload: { ...base, cancelledBy: 'client', byName: 'Анна' },
+    });
+    const toClient = renderEmail({
+      type: 'booking.cancelled',
+      payload: { ...base, cancelledBy: 'specialist', byName: 'Ирина' },
+    });
+    expect(toSpecialist.subject).toBe('Запись отменена: Консультация');
+    expect(toSpecialist.text).toContain('Анна отменяет запись');
+    expect(toSpecialist.text).toContain('снова свободно');
+    expect(toClient.text).toContain('Ирина отменяет запись');
+    expect(toClient.text).toContain('другое время');
+  });
+
+  it('confirms with the time on the recipient clock', () => {
+    const email = renderEmail({
+      type: 'booking.confirmed',
+      payload: { ...base, timeZone: 'Europe/Moscow', specialistName: 'Ирина' },
+    });
+    expect(email.subject).toBe('Запись подтверждена: Консультация');
+    expect(email.text).toContain('14:00–15:00 (Europe/Moscow)');
+  });
+});
