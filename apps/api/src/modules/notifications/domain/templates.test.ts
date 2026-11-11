@@ -40,3 +40,70 @@ describe('renderEmail', () => {
     expect(email.text).toContain('https://slotly.example/forgot-password');
   });
 });
+
+describe('booking emails', () => {
+  const booking = {
+    serviceName: 'Консультация',
+    startAt: '2026-11-19T11:00:00.000Z',
+    endAt: '2026-11-19T12:00:00.000Z',
+    bookingsUrl: 'https://slotly.example/bookings',
+  };
+
+  it("shows the time on each recipient's clock", () => {
+    const specialist = renderEmail({
+      type: 'booking.new_for_specialist',
+      payload: {
+        ...booking,
+        to: 's@example.test',
+        timeZone: 'Europe/Berlin',
+        clientName: 'Анна',
+        needsConfirmation: true,
+      },
+    });
+    const client = renderEmail({
+      type: 'booking.created_for_client',
+      payload: {
+        ...booking,
+        to: 'c@example.test',
+        timeZone: 'Europe/Moscow',
+        specialistName: 'Ирина',
+        status: 'pending',
+      },
+    });
+    expect(specialist.text).toContain('четверг, 19 ноября 2026 г., 12:00–13:00 (Europe/Berlin)');
+    expect(client.text).toContain('четверг, 19 ноября 2026 г., 14:00–15:00 (Europe/Moscow)');
+  });
+
+  it('tells whether the booking waits for confirmation', () => {
+    const base = { ...booking, to: 's@example.test', timeZone: 'UTC', clientName: 'Анна' };
+    const request = renderEmail({
+      type: 'booking.new_for_specialist',
+      payload: { ...base, needsConfirmation: true },
+    });
+    const confirmed = renderEmail({
+      type: 'booking.new_for_specialist',
+      payload: { ...base, needsConfirmation: false },
+    });
+    expect(request.subject).toBe('Новая заявка: Консультация');
+    expect(request.text).toContain('ждёт вашего подтверждения');
+    expect(confirmed.subject).toBe('Новая запись: Консультация');
+    expect(confirmed.text).toContain('подтверждена автоматически');
+  });
+
+  it('escapes names and service names in HTML', () => {
+    const email = renderEmail({
+      type: 'booking.created_for_client',
+      payload: {
+        ...booking,
+        serviceName: '<script>x</script>',
+        to: 'c@example.test',
+        timeZone: 'UTC',
+        specialistName: '<b>Ирина</b>',
+        status: 'confirmed',
+      },
+    });
+    expect(email.html).not.toContain('<script>');
+    expect(email.html).not.toContain('<b>');
+    expect(email.subject).toBe('Вы записаны: <script>x</script>'); // a header, not HTML
+  });
+});

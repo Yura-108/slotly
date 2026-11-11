@@ -29,3 +29,14 @@ export function fieldErrors(error: unknown): Record<string, string> {
   if (!isProblemDetails(error) || error.code !== 'VALIDATION_FAILED') return {};
   return Object.fromEntries((error.errors ?? []).map((e) => [e.path, e.message]));
 }
+
+/** Whether an API error has one of the given `code`s (UI behaviour by code, frontend.md §5). */
+export function hasCode(error: unknown, ...codes: string[]): boolean {
+  return isProblemDetails(error) && codes.includes(error.code);
+}
+
+/**
+ * The chosen slot is gone: taken by someone a moment ago (409) or no longer offered (422,
+ * e.g. the minimum notice has passed). The UI reloads the slots instead of retrying.
+ */
+export const SLOT_GONE_CODES = ['BOOKING_SLOT_TAKEN', 'SLOT_NOT_AVAILABLE'];

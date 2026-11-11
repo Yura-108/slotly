@@ -40,7 +40,8 @@ auth ──────────┬──▶ users
 specialists ──────▶ users
 services ─────────▶ specialists
 scheduling ───────▶ specialists
-bookings ──────┬──▶ scheduling
+bookings ──────┬──▶ users
+               ├──▶ scheduling
                ├──▶ services
                ├──▶ specialists
                └──▶ notifications
@@ -63,8 +64,9 @@ infrastructure      (БД, конфигурация, логирование, hea
 1. **Таблицу пишет и читает только модуль-владелец.** Другим модулям данные доступны только через его экспортированный сервис.
 2. **Граф зависимостей ацикличен.** `forwardRef` запрещён: цикл означает ошибку в границах модулей.
 3. **Стрелка идёт от зависимого по смыслу к самостоятельному.** Бронь не существует без расписания, расписание существует без броней → `bookings → scheduling`.
-4. **Слоты — use case модуля bookings.** «Куда можно забронировать» — вопрос о бронировании; расписание — входные данные. Расчёт — чистая функция `calculateSlots({ timeZone, intervals, daysOff, busy, durationMinutes, minNoticeMinutes, bookingHorizonDays, range, now })` в `bookings/domain`; `SlotsService` собирает входные данные у модулей-владельцев (`specialists`, `services`, `scheduling`) и занятое время из своей таблицы.
-5. **notifications не обращается к другим модулям.** Всё, что нужно для письма, кладётся в `payload` сообщения outbox в момент события (снимок, как и сама бронь).
+4. **Слоты — use case модуля bookings.** «Куда можно забронировать» — вопрос о бронировании; расписание — входные данные. Расчёт — чистая функция `calculateSlots({ timeZone, intervals, daysOff, busy, durationMinutes, minNoticeMinutes, bookingHorizonDays, range, now })` в `bookings/domain`; `SlotsService` собирает входные данные у модулей-владельцев (`specialists`, `services`, `scheduling`) и занятое время из своей таблицы. Создание брони проверяет слот той же функцией (`SlotsService.isOffered`): что показано клиенту, то и принимается.
+5. **bookings → users** (добавлено в срезе 6): клиент брони — пользователь; создание брони проверяет подтверждение его email и берёт контакты и пояс клиента и специалиста для писем. Ребро идёт к самостоятельному модулю (`users` ни от кого не зависит), цикла нет.
+6. **notifications не обращается к другим модулям.** Всё, что нужно для письма, кладётся в `payload` сообщения outbox в момент события (снимок, как и сама бронь).
 
 Соблюдение правил 1–2 и правил слоёв из §1 проверяет dependency-cruiser в `pnpm lint` ([ADR-011](../adr/011-architecture-checks-and-git-hooks.md)). Граф выше повторён объектом `moduleDependencies` в `apps/api/.dependency-cruiser.cjs`: новое ребро — правка конфигурации и этого документа в одном изменении.
 

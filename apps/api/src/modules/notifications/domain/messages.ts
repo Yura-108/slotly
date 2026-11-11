@@ -11,6 +11,18 @@ import { z } from 'zod';
  */
 const recipient = { to: z.email(), name: z.string().optional() };
 
+/**
+ * When the booking is, and the recipient's IANA zone to show it in: a specialist in Berlin
+ * and a client in Moscow read the same booking at different hours on their clocks.
+ */
+const bookingTime = {
+  serviceName: z.string(),
+  startAt: z.iso.datetime(),
+  endAt: z.iso.datetime(),
+  timeZone: z.string(),
+  bookingsUrl: z.url(),
+};
+
 export const outboxMessageSchema = z.discriminatedUnion('type', [
   z.object({
     type: z.literal('auth.verify_email'),
@@ -25,6 +37,26 @@ export const outboxMessageSchema = z.discriminatedUnion('type', [
     // is the same as for a new email, the owner of the address learns what happened)
     type: z.literal('auth.account_exists'),
     payload: z.object({ ...recipient, loginUrl: z.url(), resetUrl: z.url() }),
+  }),
+  z.object({
+    // FR-60: to the specialist, marked when the booking waits for their answer
+    type: z.literal('booking.new_for_specialist'),
+    payload: z.object({
+      ...recipient,
+      ...bookingTime,
+      clientName: z.string(),
+      needsConfirmation: z.boolean(),
+    }),
+  }),
+  z.object({
+    // FR-61: to the client — confirmed right away, or a request waiting for the answer
+    type: z.literal('booking.created_for_client'),
+    payload: z.object({
+      ...recipient,
+      ...bookingTime,
+      specialistName: z.string(),
+      status: z.enum(['pending', 'confirmed']),
+    }),
   }),
 ]);
 

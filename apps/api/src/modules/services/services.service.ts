@@ -21,6 +21,11 @@ const toService = (row: ServiceRow): Service => ({
   archived: row.archivedAt !== null,
 });
 
+/** A service a client books: whose it is matters to the booking. */
+export interface BookableService extends Service {
+  specialistId: string;
+}
+
 /** Public API of the services module (ADR-006). */
 @Injectable()
 export class ServicesService {
@@ -88,6 +93,13 @@ export class ServicesService {
     const row = await this.repository.findOwned(this.db, serviceId, specialistId);
     if (!row || row.archivedAt) throw new ServiceNotFoundError();
     return toService(row);
+  }
+
+  /** An active service by id for booking; archived and missing ones look missing (404). */
+  async getBookable(serviceId: string): Promise<BookableService> {
+    const row = await this.repository.findActiveById(this.db, serviceId);
+    if (!row) throw new ServiceNotFoundError();
+    return { ...toService(row), specialistId: row.specialistId };
   }
 
   /** What clients see on the public page: active services only. */

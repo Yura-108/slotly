@@ -5,3 +5,6 @@ export const DEFAULT_RATE_LIMIT = { name: 'default', ttl: MINUTE, limit: 120 };
 
 /** For endpoints that check secrets or create accounts: slows down guessing and spam. */
 export const AUTH_RATE_LIMIT = { default: { ttl: MINUTE, limit: 10 } };
+
+/** Creating bookings (NFR 6.1): enough for a person choosing a time, not for a script. */
+export const BOOKING_RATE_LIMIT = { default: { ttl: MINUTE, limit: 20 } };

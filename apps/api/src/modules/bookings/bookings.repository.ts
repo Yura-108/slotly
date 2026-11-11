@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { and, eq, gt, inArray, lte, or, sql } from 'drizzle-orm';
+import { and, count, eq, gt, inArray, lte, or, sql } from 'drizzle-orm';
 import type { Database, Tx } from '../../infrastructure/database/database.module';
 import { PgErrorCode, pgErrorCode } from '../../infrastructure/database/pg-errors';
 import {
@@ -74,6 +74,29 @@ export class BookingsRepository {
           overlaps(params.from, params.to),
         ),
       );
+  }
+
+  /**
+   * Pending bookings of a client with a specialist that have not expired by `now` (FR-56).
+   * Count-then-insert is a race between concurrent requests; it is safe only under
+   * {@link lockSpecialistSchedule}, taken before the count.
+   */
+  async countActivePending(
+    tx: Tx,
+    params: { clientId: string; specialistId: string; now: Date },
+  ): Promise<number> {
+    const [row] = await tx
+      .select({ n: count() })
+      .from(bookings)
+      .where(
+        and(
+          eq(bookings.clientId, params.clientId),
+          eq(bookings.specialistId, params.specialistId),
+          eq(bookings.status, 'pending'),
+          gt(bookings.expiresAt, params.now),
+        ),
+      );
+    return row?.n ?? 0;
   }
 
   /** @throws BookingConflictError when the interval overlaps an active booking. */
