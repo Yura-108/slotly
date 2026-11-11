@@ -63,6 +63,12 @@ export class UsersService {
     return user ? { ...toProfile(user), passwordHash: user.passwordHash } : null;
   }
 
+  /** Names by user id, in one query: for lists that show the other party of many records. */
+  async getNames(userIds: readonly string[]): Promise<Map<string, string>> {
+    const rows = await this.repository.findByIds(this.db, [...new Set(userIds)]);
+    return new Map(rows.map((u) => [u.id, u.name]));
+  }
+
   async getProfile(userId: string, tx: Executor = this.db): Promise<UserProfile> {
     const user = await this.repository.findById(tx, userId);
     if (!user) throw new UserNotFoundError();

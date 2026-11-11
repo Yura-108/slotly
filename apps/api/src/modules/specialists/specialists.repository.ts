@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { eq } from 'drizzle-orm';
+import { eq, inArray } from 'drizzle-orm';
 import type { Executor } from '../../infrastructure/database/database.module';
 import { PgErrorCode, pgConstraint, pgErrorCode } from '../../infrastructure/database/pg-errors';
 import { SlugTakenError, SpecialistProfileExistsError } from './domain/errors';
@@ -60,6 +60,14 @@ export class SpecialistsRepository {
       .from(specialistProfiles)
       .where(eq(specialistProfiles.userId, userId));
     return profile;
+  }
+
+  async findByUserIds(db: Executor, ids: readonly string[]): Promise<SpecialistProfileRow[]> {
+    if (ids.length === 0) return [];
+    return db
+      .select()
+      .from(specialistProfiles)
+      .where(inArray(specialistProfiles.userId, [...ids]));
   }
 
   async findBySlug(db: Executor, slug: string): Promise<SpecialistProfileRow | undefined> {

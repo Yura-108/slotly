@@ -155,6 +155,7 @@ outbox_messages — без внешних ключей (очередь исхо�
 | status                 | enum `booking_status` (`pending`, `confirmed`, `rejected`, `cancelled`, `expired`) | NOT NULL                                   |                        |
 | expires_at             | timestamptz                                                                        | NULL                                       | только для `pending`   |
 | cancelled_by           | enum `booking_actor` (`client`, `specialist`)                                      | NULL                                       | только для `cancelled` |
+| cancel_deadline_at     | timestamptz                                                                        | NOT NULL, `<= start_at`                    | снимок правила отмены  |
 | status_reason          | text                                                                               | NULL, ≤ 500                                | причина отказа/отмены  |
 | created_at, updated_at | timestamptz                                                                        | NOT NULL                                   |                        |
 
@@ -163,6 +164,7 @@ outbox_messages — без внешних ключей (очередь исхо�
 - `CHECK (client_id <> specialist_id)` — нельзя записаться к себе.
 - `CHECK ((status = 'pending') = (expires_at IS NOT NULL))` — срок есть ровно у `pending`.
 - `CHECK ((status = 'cancelled') = (cancelled_by IS NOT NULL))`.
+- `CHECK (cancel_deadline_at <= start_at)`. `cancel_deadline_at = start_at − client_cancel_deadline_hours` **на момент записи** (миграция 0007, срез 6→7): клиент записывался на условиях того момента, поэтому смена настройки специалиста существующие брони не затрагивает — как и смена названия или длительности услуги. Для броней, созданных до миграции, значение заполнено по текущей настройке.
 - Exclusion constraint из [ADR-003](../adr/003-double-booking-protection.md):
   `EXCLUDE USING gist (specialist_id WITH =, tstzrange(start_at, end_at, '[)') WITH &&) WHERE (status IN ('pending','confirmed'))`.
 
@@ -234,6 +236,8 @@ RETURNING *;
 | Колонка `version` (optimistic locking)           | Когда пользователь долго редактирует форму на основе старых данных (например, профиль специалиста)  |
 
 Правило для кода: **ни один UPDATE статуса брони не выполняется без условия на текущий статус**. Это проверяется тестами на каждый переход.
+
+Тест гонки должен идти через переход, где статус — единственная защита. Для `pending` есть ещё условие `expires_at > now`, а каждый переход обнуляет `expires_at`, поэтому второй `UPDATE` срабатывает вхолостую даже без условия на статус. Мутационная проверка (срез 7) показала, что тест «подтверждение против отмены заявки» без условия на статус проходит. Ловит его только тест двух одновременных отмен **подтверждённой** брони.
 
 ## 5. Открытые вопросы
 

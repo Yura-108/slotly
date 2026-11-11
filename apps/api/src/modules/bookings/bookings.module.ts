@@ -4,7 +4,7 @@ import { SchedulingModule } from '../scheduling/scheduling.module';
 import { ServicesModule } from '../services/services.module';
 import { SpecialistsModule } from '../specialists/specialists.module';
 import { UsersModule } from '../users/users.module';
-import { BookingsController } from './bookings.controller';
+import { BookingsController, MyBookingsController } from './bookings.controller';
 import { BookingsRepository } from './bookings.repository';
 import { BookingsService } from './bookings.service';
 import { SlotsController } from './slots.controller';
@@ -12,7 +12,7 @@ import { SlotsService } from './slots.service';
 
 @Module({
   imports: [UsersModule, SpecialistsModule, ServicesModule, SchedulingModule, NotificationsModule],
-  controllers: [SlotsController, BookingsController],
+  controllers: [SlotsController, BookingsController, MyBookingsController],
   providers: [SlotsService, BookingsService, BookingsRepository],
   exports: [BookingsService],
 })

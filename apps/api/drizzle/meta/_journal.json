@@ -50,6 +50,13 @@
       "when": 1794303029072,
       "tag": "0006_weekly_availability_no_overlap",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1794403801591,
+      "tag": "0007_booking_cancel_deadline",
+      "breakpoints": true
     }
   ]
 }

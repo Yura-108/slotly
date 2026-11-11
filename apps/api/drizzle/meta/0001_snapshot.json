@@ -66,9 +66,7 @@
       "uniqueConstraints": {
         "users_email_unique": {
           "name": "users_email_unique",
-          "columns": [
-            "email"
-          ],
+          "columns": ["email"],
           "nullsNotDistinct": false
         }
       },
@@ -168,13 +166,9 @@
         "specialist_profiles_user_id_users_id_fk": {
           "name": "specialist_profiles_user_id_users_id_fk",
           "tableFrom": "specialist_profiles",
-          "columnsFrom": [
-            "user_id"
-          ],
+          "columnsFrom": ["user_id"],
           "tableTo": "users",
-          "columnsTo": [
-            "id"
-          ],
+          "columnsTo": ["id"],
           "onUpdate": "no action",
           "onDelete": "cascade"
         }
@@ -183,9 +177,7 @@
       "uniqueConstraints": {
         "specialist_profiles_slug_unique": {
           "name": "specialist_profiles_slug_unique",
-          "columns": [
-            "slug"
-          ],
+          "columns": ["slug"],
           "nullsNotDistinct": false
         }
       },
@@ -288,13 +280,9 @@
         "services_specialist_id_specialist_profiles_user_id_fk": {
           "name": "services_specialist_id_specialist_profiles_user_id_fk",
           "tableFrom": "services",
-          "columnsFrom": [
-            "specialist_id"
-          ],
+          "columnsFrom": ["specialist_id"],
           "tableTo": "specialist_profiles",
-          "columnsTo": [
-            "user_id"
-          ],
+          "columnsTo": ["user_id"],
           "onUpdate": "no action",
           "onDelete": "no action"
         }
@@ -466,39 +454,27 @@
         "bookings_specialist_id_specialist_profiles_user_id_fk": {
           "name": "bookings_specialist_id_specialist_profiles_user_id_fk",
           "tableFrom": "bookings",
-          "columnsFrom": [
-            "specialist_id"
-          ],
+          "columnsFrom": ["specialist_id"],
           "tableTo": "specialist_profiles",
-          "columnsTo": [
-            "user_id"
-          ],
+          "columnsTo": ["user_id"],
           "onUpdate": "no action",
           "onDelete": "no action"
         },
         "bookings_client_id_users_id_fk": {
           "name": "bookings_client_id_users_id_fk",
           "tableFrom": "bookings",
-          "columnsFrom": [
-            "client_id"
-          ],
+          "columnsFrom": ["client_id"],
           "tableTo": "users",
-          "columnsTo": [
-            "id"
-          ],
+          "columnsTo": ["id"],
           "onUpdate": "no action",
           "onDelete": "no action"
         },
         "bookings_service_id_services_id_fk": {
           "name": "bookings_service_id_services_id_fk",
           "tableFrom": "bookings",
-          "columnsFrom": [
-            "service_id"
-          ],
+          "columnsFrom": ["service_id"],
           "tableTo": "services",
-          "columnsTo": [
-            "id"
-          ],
+          "columnsTo": ["id"],
           "onUpdate": "no action",
           "onDelete": "restrict"
         }
@@ -535,29 +511,17 @@
     "public.confirmation_mode": {
       "name": "confirmation_mode",
       "schema": "public",
-      "values": [
-        "auto",
-        "manual"
-      ]
+      "values": ["auto", "manual"]
     },
     "public.booking_actor": {
       "name": "booking_actor",
       "schema": "public",
-      "values": [
-        "client",
-        "specialist"
-      ]
+      "values": ["client", "specialist"]
     },
     "public.booking_status": {
       "name": "booking_status",
       "schema": "public",
-      "values": [
-        "pending",
-        "confirmed",
-        "rejected",
-        "cancelled",
-        "expired"
-      ]
+      "values": ["pending", "confirmed", "rejected", "cancelled", "expired"]
     }
   },
   "schemas": {},

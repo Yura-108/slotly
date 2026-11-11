@@ -21,6 +21,11 @@ export interface SpecialistProfile {
   clientCancelDeadlineHours: number;
 }
 
+export interface SpecialistCard {
+  slug: string;
+  displayName: string;
+}
+
 export interface BookingSettings {
   confirmationMode: ConfirmationMode;
   minNoticeMinutes: number;
@@ -103,6 +108,12 @@ export class SpecialistsService {
     const profile = await this.findOwn(userId);
     if (!profile) throw new SpecialistNotFoundError();
     return profile;
+  }
+
+  /** Public name and page of many specialists, in one query (lists of bookings). */
+  async getCards(userIds: readonly string[]): Promise<Map<string, SpecialistCard>> {
+    const rows = await this.repository.findByUserIds(this.db, [...new Set(userIds)]);
+    return new Map(rows.map((r) => [r.userId, { slug: r.slug, displayName: r.displayName }]));
   }
 
   async getBySlug(slug: string): Promise<SpecialistProfile> {

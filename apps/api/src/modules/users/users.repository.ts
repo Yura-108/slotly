@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { eq } from 'drizzle-orm';
+import { eq, inArray } from 'drizzle-orm';
 import type { Executor } from '../../infrastructure/database/database.module';
 import { type NewUserRow, type UserRow, users } from './users.schema';
 
@@ -25,6 +25,14 @@ export class UsersRepository {
   async findById(db: Executor, id: string): Promise<UserRow | undefined> {
     const [user] = await db.select().from(users).where(eq(users.id, id));
     return user;
+  }
+
+  async findByIds(db: Executor, ids: readonly string[]): Promise<UserRow[]> {
+    if (ids.length === 0) return [];
+    return db
+      .select()
+      .from(users)
+      .where(inArray(users.id, [...ids]));
   }
 
   async findByEmail(db: Executor, email: string): Promise<UserRow | undefined> {
