@@ -1,3 +1,4 @@
+import { verifiedPerson } from '../support/api.ts';
 import { E2E } from '../support/env.ts';
 import { expect, test, uniqueEmail } from '../support/fixtures.ts';
 import { linkTo, waitForLetter } from '../support/mailpit.ts';
@@ -53,4 +54,35 @@ test('a confirmation link works only once', async ({ page }) => {
   await again.goto(link);
   await expect(again.getByText('Ссылка недействительна или устарела')).toBeVisible();
   await expect(again.getByText('Email подтверждён.')).toHaveCount(0);
+});
+
+test('a forgotten password is replaced through the emailed link', async ({ page }) => {
+  const anna = await verifiedPerson('Анна');
+  const newPassword = 'e2e brand new password';
+
+  await page.goto('/login');
+  await page.getByRole('link', { name: 'Забыли пароль?' }).click();
+  // The login page has an "Email" field too: wait for the new page, or the old field is
+  // filled while the client-side navigation is still running
+  await expect(page.getByRole('heading', { name: 'Восстановление пароля' })).toBeVisible();
+  await page.getByLabel('Email').fill(anna.email);
+  await page.getByRole('button', { name: 'Отправить ссылку' }).click();
+  await expect(page.getByRole('status')).toBeVisible();
+
+  const letter = await waitForLetter(anna.email, 'Сброс пароля');
+  await page.goto(linkTo(letter, '/reset-password'));
+  await page.getByLabel('Новый пароль').fill(newPassword);
+  await page.getByLabel('Повторите пароль').fill(newPassword);
+  await page.getByRole('button', { name: 'Сменить пароль' }).click();
+  await expect(page.getByText('Пароль изменён. Войдите с новым паролем.')).toBeVisible();
+
+  const signInWith = async (password: string) => {
+    await page.getByLabel('Email').fill(anna.email);
+    await page.getByLabel('Пароль').fill(password);
+    await page.getByRole('button', { name: 'Войти' }).click();
+  };
+  await signInWith(E2E.password);
+  await expect(page.getByText('Неверный email или пароль.')).toBeVisible();
+  await signInWith(newPassword);
+  await expect(page).toHaveURL(/\/bookings$/);
 });
