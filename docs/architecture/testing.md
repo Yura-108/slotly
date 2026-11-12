@@ -21,7 +21,7 @@
 
 ## 3. Браузерные e2e (`e2e/`)
 
-Запуск: `pnpm test:e2e` (нужны `docker compose up -d --wait` и один раз `pnpm --filter @slotly/e2e exec playwright install chromium`). Отчёт: `pnpm --filter @slotly/e2e report`.
+Запуск: `pnpm test:e2e` (нужны `docker compose up -d --wait` и один раз `pnpm --filter @slotly/e2e exec playwright install chromium`). Отчёт: `pnpm test:e2e:report` (Playwright установлен только в пакете `e2e/`, поэтому его подсказка `pnpm exec playwright show-report` из корня не работает).
 
 - **Стек на прогон:** база `slotly_e2e` пересоздаётся миграциями; API на `:4100`, web на `:3100` (сборка в `.next-e2e`); письма — Mailpit `:8025`. Dev-серверы на 3000/4000 не мешают.
 - **Изоляция данных:** одна база на прогон, тесты параллельны; каждый тест создаёт свои email и slug (`uniqueEmail`, `uniqueSlug`). Нельзя: утверждать про общее количество строк, полагаться на порядок тестов, чистить таблицы.
