@@ -59,6 +59,16 @@ export const outboxMessageSchema = z.discriminatedUnion('type', [
     }),
   }),
   z.object({
+    // FR-61: a request expired without an answer; the client can choose another time
+    type: z.literal('booking.expired'),
+    payload: z.object({
+      ...recipient,
+      ...bookingTime,
+      specialistName: z.string(),
+      specialistUrl: z.url(),
+    }),
+  }),
+  z.object({
     // FR-61: the specialist confirmed a request
     type: z.literal('booking.confirmed'),
     payload: z.object({ ...recipient, ...bookingTime, specialistName: z.string() }),

@@ -69,6 +69,12 @@ export class UsersService {
     return new Map(rows.map((u) => [u.id, u.name]));
   }
 
+  /** Profiles by user id, in one query: for emails to many recipients (background jobs). */
+  async getProfiles(userIds: readonly string[]): Promise<Map<string, UserProfile>> {
+    const rows = await this.repository.findByIds(this.db, [...new Set(userIds)]);
+    return new Map(rows.map((u) => [u.id, toProfile(u)]));
+  }
+
   async getProfile(userId: string, tx: Executor = this.db): Promise<UserProfile> {
     const user = await this.repository.findById(tx, userId);
     if (!user) throw new UserNotFoundError();

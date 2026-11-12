@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { and, eq, gt, isNull } from 'drizzle-orm';
+import { and, eq, gt, inArray, isNull, lte } from 'drizzle-orm';
 import type { Executor } from '../../infrastructure/database/database.module';
 import { authTokens, type AuthTokenPurpose } from './auth-tokens.schema';
 
@@ -16,6 +16,23 @@ export class AuthTokensRepository {
    * Compare-and-set consumption: of two concurrent requests with one token, exactly one
    * gets the row back. Returns the owner, or null for unknown, expired or used tokens.
    */
+  /**
+   * Cleanup: up to `limit` tokens past their expiry, used or not — after it they can only
+   * be rejected; returns how many were deleted.
+   */
+  async deleteExpired(db: Executor, now: Date, limit: number): Promise<number> {
+    const batch = db
+      .select({ id: authTokens.id })
+      .from(authTokens)
+      .where(lte(authTokens.expiresAt, now))
+      .limit(limit);
+    const deleted = await db
+      .delete(authTokens)
+      .where(inArray(authTokens.id, batch))
+      .returning({ id: authTokens.id });
+    return deleted.length;
+  }
+
   async consume(
     db: Executor,
     params: { tokenHash: Buffer; purpose: AuthTokenPurpose; now: Date },

@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { and, asc, eq, inArray, lte, sql } from 'drizzle-orm';
+import { and, asc, eq, inArray, lte, or, sql } from 'drizzle-orm';
 import type { Executor, Tx } from '../../infrastructure/database/database.module';
 import { SECRET_PAYLOAD_FIELD } from './domain/messages';
 import { outboxMessages, type OutboxRow } from './outbox.schema';
@@ -40,6 +40,37 @@ export class OutboxRepository {
       .set({ nextAttemptAt: params.leaseUntil, attempts: sql`${outboxMessages.attempts} + 1` })
       .where(inArray(outboxMessages.id, due))
       .returning();
+  }
+
+  /**
+   * Cleanup: up to `limit` processed messages — sent before `sentBefore`, failed before
+   * `failedBefore` (kept longer to investigate). Pending messages are never deleted.
+   */
+  async deleteProcessed(
+    db: Executor,
+    params: { sentBefore: Date; failedBefore: Date; limit: number },
+  ): Promise<number> {
+    const batch = db
+      .select({ id: outboxMessages.id })
+      .from(outboxMessages)
+      .where(
+        or(
+          and(
+            eq(outboxMessages.status, 'sent'),
+            lte(outboxMessages.processedAt, params.sentBefore),
+          ),
+          and(
+            eq(outboxMessages.status, 'failed'),
+            lte(outboxMessages.processedAt, params.failedBefore),
+          ),
+        ),
+      )
+      .limit(params.limit);
+    const deleted = await db
+      .delete(outboxMessages)
+      .where(inArray(outboxMessages.id, batch))
+      .returning({ id: outboxMessages.id });
+    return deleted.length;
   }
 
   async markSent(db: Executor, id: string, now: Date): Promise<void> {
