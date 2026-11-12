@@ -12,12 +12,19 @@
 | 4   | Организация разработки (репозиторий, линтеры, Docker, Git workflow) | ✅     | [ADR-010](docs/adr/010-development-environment.md), [ADR-011](docs/adr/011-architecture-checks-and-git-hooks.md) |
 | 5   | Реализация vertical slices                                          | ✅     | 8 срезов, PR #1–#8                                                                                               |
 | 6   | Тестирование и качество                                             | ✅     | [testing.md](docs/architecture/testing.md), [ADR-013](docs/adr/013-testing-strategy.md)                          |
-| 7   | Безопасность и надёжность                                           | ⏳     | (сквозное, начинается с этапа 3)                                                                                 |
+| 7   | Безопасность и надёжность                                           | 🔄     | [security.md](docs/architecture/security.md)                                                                     |
 | 8   | CI/CD                                                               | ⏳     | —                                                                                                                |
 | 9   | Production и эксплуатация                                           | ⏳     | —                                                                                                                |
 | 10  | Ретроспектива                                                       | ⏳     | —                                                                                                                |
 
 ## Текущий шаг
+
+Этап 7 — безопасность и надёжность (план утверждён 2026-11-12), срез на PR:
+
+1. ✅ Модель угроз [security.md](docs/architecture/security.md) по OWASP Top 10:2025; тест матрицы доступа по настоящей таблице маршрутов (`401` вне списка публичных, точный список публичных, `403` без `Origin`).
+2. Заголовки безопасности и CSP (ADR), HSTS в production, `Cache-Control: no-store` в API.
+3. Зависимости и секреты: `multer`, разбор dev-уведомлений, `pnpm audit --prod` в проверках, поиск секретов в истории и pre-commit, Dependabot.
+4. Надёжность: тайм-ауты HTTP-сервера, лимит тела, быстрый `503` без БД, liveness/readiness.
 
 Этап 6 — тестирование и качество (план утверждён 2026-11-12), срез на PR:
 
@@ -54,6 +61,7 @@
 
 ## Отложенные задачи
 
+- Политика паролей: сейчас от 8 символов без проверки по утёкшим базам; NIST SP 800-63B-4 для пароля как единственного фактора требует от 15. Решить вместе с UX регистрации (длина, проверка по k-anonymity API утечек) — [security.md](docs/architecture/security.md) §4, A07.
 - Переход на Node 26 — начало 2027. Вместе с ним — заменить `apps/api/src/shared/zoned-time.ts` на нативный `Temporal` (в Node 24 он только за флагом `--harmony-temporal`); тесты перевода времени остаются.
 - Переход на NestJS 12 и ESM в api — после поддержки NestJS 12 в nestjs-zod.
 - Переход на TypeScript 7 — после поддержки в typescript-eslint, NestJS CLI и Next.js.
