@@ -24,9 +24,13 @@ describe('time of day', () => {
     expect(formatTime(minutes)).toBe(text);
   });
 
-  it.each(['24:01', '25:00', '9:00', '10:60', '10.30', ''])('rejects %j', (text) => {
-    expect(parseTime(text)).toBeNull();
-  });
+  // Extra characters around a valid time must not be ignored ("110:30" is not 10:30)
+  it.each(['24:01', '25:00', '9:00', '10:60', '10.30', '', '110:30', '10:300', ' 10:30'])(
+    'rejects %j',
+    (text) => {
+      expect(parseTime(text)).toBeNull();
+    },
+  );
 });
 
 describe('findOverlaps', () => {
@@ -36,6 +40,8 @@ describe('findOverlaps', () => {
 
   it('allows touching intervals: [10:00, 12:00) and [12:00, 14:00)', () => {
     expect(findOverlaps([at(1, '10:00', '12:00'), at(1, '12:00', '14:00')])).toEqual([]);
+    // …in either order
+    expect(findOverlaps([at(1, '12:00', '14:00'), at(1, '10:00', '12:00')])).toEqual([]);
   });
 
   it('ignores the same time on different days', () => {

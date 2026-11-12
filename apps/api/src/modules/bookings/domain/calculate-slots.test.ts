@@ -115,6 +115,18 @@ describe('calculateSlots: what removes slots', () => {
     expect(starts(slots)).toEqual(['2026-11-16T08:00:00.000Z', '2026-11-16T11:00:00.000Z']);
   });
 
+  it('keeps both neighbours of a booking: half-open intervals touch, not overlap', () => {
+    // The booking takes exactly the 10:00 local slot (09:00Z–10:00Z)
+    const slots = calculateSlots(
+      query({ intervals: day, busy: [range('2026-11-16T09:00:00Z', '2026-11-16T10:00:00Z')] }),
+    );
+    expect(starts(slots)).toEqual([
+      '2026-11-16T08:00:00.000Z', // ends when the booking starts
+      '2026-11-16T10:00:00.000Z', // starts when the booking ends
+      '2026-11-16T11:00:00.000Z',
+    ]);
+  });
+
   it('respects the minimum notice', () => {
     const slots = calculateSlots(
       query({ intervals: day, now: at('2026-11-16T07:30:00Z'), minNoticeMinutes: 60 }),
@@ -226,6 +238,33 @@ describe('calculateSlots: daylight saving time (requirements §5)', () => {
       }),
     );
     expect(starts(slots)).toEqual(['2026-09-06T02:00:00.000Z', '2026-09-06T03:00:00.000Z']);
+  });
+
+  it('ends the working time at a skipped reading: the clock jumps over it', () => {
+    // Berlin 2026-03-29, until 02:30 (does not exist): 01:30 CET + 90 min ends at 04:00 CEST
+    const slots = calculateSlots(
+      query({
+        intervals: sunday(0, hm(2, 30)),
+        durationMinutes: 90,
+        range: range('2026-03-28T00:00:00Z', '2026-03-30T00:00:00Z'),
+        now: at('2026-03-01T00:00:00Z'),
+      }),
+    );
+    expect(starts(slots)).toEqual(['2026-03-28T23:00:00.000Z']);
+  });
+
+  it('does not let a slot run past a skipped midnight into the next day', () => {
+    // Santiago, Saturday 2026-09-05 until 24:00: 23:30 + 90 min ends at 02:00 of September 6th
+    const slots = calculateSlots(
+      query({
+        timeZone: 'America/Santiago',
+        intervals: [{ weekday: 6, startMinute: hm(22), endMinute: 1440 }],
+        durationMinutes: 90,
+        range: range('2026-09-05T00:00:00Z', '2026-09-07T00:00:00Z'),
+        now: at('2026-09-01T00:00:00Z'),
+      }),
+    );
+    expect(starts(slots)).toEqual(['2026-09-06T02:00:00.000Z']); // 22:00 only
   });
 
   it('keeps invariants for every day of a year in zones with and without DST', () => {

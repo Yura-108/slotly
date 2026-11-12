@@ -1,4 +1,5 @@
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { Logger } from '@nestjs/common';
+import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
 import { inBatches, PeriodicJob } from './periodic-job';
 
 class ProbeJob extends PeriodicJob {
@@ -26,6 +27,10 @@ class ProbeJob extends PeriodicJob {
 const slow = (ms: number) => () => new Promise<void>((resolve) => setTimeout(resolve, ms));
 
 describe('PeriodicJob', () => {
+  // A failing run is logged on purpose; keep the expected error out of the test output
+  beforeAll(() => Logger.overrideLogger(false));
+  afterAll(() => Logger.overrideLogger(['log', 'error', 'warn', 'debug', 'verbose']));
+
   beforeEach(() => {
     vi.useFakeTimers();
   });

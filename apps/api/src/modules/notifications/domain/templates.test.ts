@@ -139,12 +139,14 @@ describe('booking status emails', () => {
     });
     const toClient = renderEmail({
       type: 'booking.cancelled',
-      payload: { ...base, cancelledBy: 'specialist', byName: 'Ирина' },
+      payload: { ...base, cancelledBy: 'specialist', byName: 'Ирина', reason: 'Заболела' },
     });
     expect(toSpecialist.subject).toBe('Запись отменена: Консультация');
     expect(toSpecialist.text).toContain('Анна отменяет запись');
     expect(toSpecialist.text).toContain('снова свободно');
     expect(toClient.text).toContain('Ирина отменяет запись');
+    expect(toClient.text).toContain('Причина: Заболела');
+    expect(toSpecialist.text).not.toContain('Причина');
     expect(toClient.text).toContain('другое время');
   });
 

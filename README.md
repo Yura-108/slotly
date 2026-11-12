@@ -65,6 +65,8 @@ pnpm --filter @slotly/web dev       # http://localhost:3000, /api/* прокси
 | `pnpm format` / `format:check`               | Prettier                                                                                                                                  |
 | `pnpm test:e2e`                              | браузерные e2e (Playwright) на изолированном стеке; нужен Docker, один раз — `pnpm --filter @slotly/e2e exec playwright install chromium` |
 | `pnpm test:e2e:report`                       | открыть HTML-отчёт последнего прогона e2e                                                                                                 |
+| `pnpm --filter @slotly/api test:coverage`    | покрытие домена API unit-тестами (пороги)                                                                                                 |
+| `pnpm --filter @slotly/api test:mutation`    | мутационное тестирование домена (Stryker, ~3 мин)                                                                                         |
 | `pnpm --filter @slotly/api dev`              | api с hot reload                                                                                                                          |
 | `pnpm --filter @slotly/web dev`              | web с hot reload                                                                                                                          |
 | `pnpm --filter @slotly/api db:generate`      | сгенерировать SQL-миграцию по схеме                                                                                                       |

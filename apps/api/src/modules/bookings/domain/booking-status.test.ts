@@ -83,6 +83,10 @@ describe('refusal', () => {
     expect(refusal(booking({ status: 'cancelled' }), 'specialist', 'cancel', morning)).toBe(
       'status_changed',
     );
+    // The deadline explains only a confirmed booking; a cancelled one was changed meanwhile
+    expect(refusal(booking({ status: 'cancelled' }), 'client', 'cancel', morning)).toBe(
+      'status_changed',
+    );
     // Confirming a request that has just expired: the page was stale
     expect(refusal(pending(), 'specialist', 'confirm', at('2026-11-19T11:00:00Z'))).toBe(
       'status_changed',

@@ -40,7 +40,9 @@ export function formatTime(minutes: number): string {
  */
 export function findOverlaps(intervals: readonly WeeklyInterval[]): [number, number][] {
   const overlaps: [number, number][] = [];
+  // Stryker disable next-line EqualityOperator: an index past the end is skipped by the undefined check below
   for (let i = 0; i < intervals.length; i++) {
+    // Stryker disable next-line EqualityOperator: as above
     for (let j = i + 1; j < intervals.length; j++) {
       const a = intervals[i];
       const b = intervals[j];

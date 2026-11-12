@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { afterFailedAttempt, MAX_ATTEMPTS } from './retry-policy';
+import { afterFailedAttempt, LEASE_MS, MAX_ATTEMPTS } from './retry-policy';
 
 const now = new Date('2026-01-01T00:00:00Z');
 const minutesLater = (m: number) => new Date(now.getTime() + m * 60_000);
@@ -19,5 +19,13 @@ describe('afterFailedAttempt', () => {
 
   it('gives up after the last attempt', () => {
     expect(afterFailedAttempt(MAX_ATTEMPTS, now)).toEqual({ status: 'failed' });
+  });
+});
+
+describe('LEASE_MS', () => {
+  it('outlives one send attempt, so a slow send is not taken by another worker', () => {
+    // mail-sender.ts: connection 10 s + greeting 10 s + socket 30 s = 50 s at worst
+    expect(LEASE_MS).toBeGreaterThan(50_000);
+    expect(LEASE_MS).toBe(5 * 60_000);
   });
 });
