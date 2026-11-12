@@ -71,19 +71,21 @@
 
 ### Переменные apps/api (предварительно)
 
-| Переменная                | Назначение                                                                                                                     |
-| ------------------------- | ------------------------------------------------------------------------------------------------------------------------------ |
-| `PORT`                    | порт HTTP                                                                                                                      |
-| `DATABASE_URL`            | подключение к PostgreSQL (секрет)                                                                                              |
-| `APP_ORIGIN`              | origin web-приложения: проверка `Origin`, ссылки в письмах                                                                     |
-| `SESSION_COOKIE_NAME`     | по умолчанию `__Host-session`; с префиксом `__Host-` требует `COOKIE_SECURE=true` (проверяется при старте)                     |
-| `COOKIE_SECURE`           | по умолчанию `true`; Chromium принимает Secure на `http://localhost`                                                           |
-| `TRUSTED_PROXY`           | Express `trust proxy`: от каких адресов принимать `X-Forwarded-For` (по умолчанию `loopback`)                                  |
-| `SMTP_URL`                | SMTP почтового сервиса (секрет); локально Mailpit `smtp://localhost:1025` ([ADR-012](../adr/012-outbox-and-email-delivery.md)) |
-| `EMAIL_FROM`              | адрес отправителя                                                                                                              |
-| `OUTBOX_POLL_INTERVAL_MS` | интервал обработчика outbox, по умолчанию 5000; `0` выключает цикл (тесты)                                                     |
-| `LOG_LEVEL`               | `info` / `debug`                                                                                                               |
-| `LOG_FORMAT`              | `json` / `pretty`                                                                                                              |
+| Переменная                   | Назначение                                                                                                                     |
+| ---------------------------- | ------------------------------------------------------------------------------------------------------------------------------ |
+| `PORT`                       | порт HTTP                                                                                                                      |
+| `DATABASE_URL`               | подключение к PostgreSQL (секрет)                                                                                              |
+| `APP_ORIGIN`                 | origin web-приложения: проверка `Origin`, ссылки в письмах                                                                     |
+| `SESSION_COOKIE_NAME`        | по умолчанию `__Host-session`; с префиксом `__Host-` требует `COOKIE_SECURE=true` (проверяется при старте)                     |
+| `COOKIE_SECURE`              | по умолчанию `true`; Chromium принимает Secure на `http://localhost`                                                           |
+| `TRUSTED_PROXY`              | Express `trust proxy`: от каких адресов принимать `X-Forwarded-For` (по умолчанию `loopback`)                                  |
+| `SMTP_URL`                   | SMTP почтового сервиса (секрет); локально Mailpit `smtp://localhost:1025` ([ADR-012](../adr/012-outbox-and-email-delivery.md)) |
+| `EMAIL_FROM`                 | адрес отправителя                                                                                                              |
+| `OUTBOX_POLL_INTERVAL_MS`    | интервал обработчика outbox, по умолчанию 5000; `0` выключает цикл (тесты)                                                     |
+| `BOOKING_EXPIRY_INTERVAL_MS` | интервал задачи истечения заявок, по умолчанию 60000; `0` выключает (тесты)                                                    |
+| `CLEANUP_INTERVAL_MS`        | интервал уборки сессий, токенов и outbox, по умолчанию 3600000; `0` выключает (тесты)                                          |
+| `LOG_LEVEL`                  | `info` / `debug`                                                                                                               |
+| `LOG_FORMAT`                 | `json` / `pretty`                                                                                                              |
 
 ### Переменные apps/web (предварительно)
 

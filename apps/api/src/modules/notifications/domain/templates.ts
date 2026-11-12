@@ -105,6 +105,18 @@ export function renderEmail(message: OutboxMessage): RenderedEmail {
         { label: 'Мои записи', url: p.bookingsUrl },
       );
     }
+    case 'booking.expired': {
+      const p = message.payload;
+      return email(
+        `Заявка истекла: ${p.serviceName}`,
+        [
+          greeting(p.name),
+          `Заявка к специалисту ${p.specialistName} на услугу «${p.serviceName}» на ${formatBookingTime(p.startAt, p.endAt, p.timeZone)} осталась без ответа и больше не действует.`,
+          'Выберите другое время — специалист, возможно, был недоступен.',
+        ],
+        { label: 'Выбрать время', url: p.specialistUrl },
+      );
+    }
     case 'booking.confirmed': {
       const p = message.payload;
       return email(

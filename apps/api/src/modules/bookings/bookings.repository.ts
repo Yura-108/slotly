@@ -45,8 +45,8 @@ export class BookingsRepository {
   async expireOverduePendingOverlapping(
     tx: Tx,
     params: { specialistId: string; startAt: Date; endAt: Date; now: Date },
-  ): Promise<number> {
-    const expired = await tx
+  ): Promise<BookingRow[]> {
+    return tx
       .update(bookings)
       .set({ status: 'expired', expiresAt: null })
       .where(
@@ -57,8 +57,34 @@ export class BookingsRepository {
           overlaps(params.startAt, params.endAt),
         ),
       )
-      .returning({ id: bookings.id });
-    return expired.length;
+      .returning();
+  }
+
+  /**
+   * One batch of the expiry job: overdue requests become expired. SKIP LOCKED lets several
+   * instances share the work; the status condition is the compare-and-set — a request
+   * confirmed or cancelled meanwhile is not touched, and each expiry happens (and is
+   * emailed) exactly once.
+   */
+  async expireOverduePending(tx: Tx, now: Date, limit: number): Promise<BookingRow[]> {
+    const due = tx
+      .select({ id: bookings.id })
+      .from(bookings)
+      .where(and(eq(bookings.status, 'pending'), lte(bookings.expiresAt, now)))
+      .orderBy(asc(bookings.expiresAt))
+      .limit(limit)
+      .for('update', { skipLocked: true });
+    return tx
+      .update(bookings)
+      .set({ status: 'expired', expiresAt: null })
+      .where(
+        and(
+          inArray(bookings.id, due),
+          eq(bookings.status, 'pending'),
+          lte(bookings.expiresAt, now),
+        ),
+      )
+      .returning();
   }
 
   /**

@@ -19,6 +19,9 @@ const envSchema = z.object({
   EMAIL_FROM: z.string().min(3),
   // How often the outbox worker polls; 0 disables the loop (tests process batches explicitly)
   OUTBOX_POLL_INTERVAL_MS: z.coerce.number().int().min(0).default(5000),
+  // Background jobs (backend.md §4); 0 disables a loop (tests run jobs explicitly)
+  BOOKING_EXPIRY_INTERVAL_MS: z.coerce.number().int().min(0).default(60_000),
+  CLEANUP_INTERVAL_MS: z.coerce.number().int().min(0).default(3_600_000),
 });
 
 type Env = z.infer<typeof envSchema>;
@@ -43,6 +46,12 @@ export abstract class AppConfig {
   };
   declare readonly outbox: {
     readonly pollIntervalMs: number;
+  };
+  declare readonly jobs: {
+    /** Marks overdue requests expired and emails clients; correctness does not depend on it. */
+    readonly bookingExpiryIntervalMs: number;
+    /** Deletes expired sessions and tokens, old outbox messages. */
+    readonly cleanupIntervalMs: number;
   };
   declare readonly log: {
     readonly level: Env['LOG_LEVEL'];
@@ -78,6 +87,10 @@ export function loadConfig(env: Record<string, string | undefined>): AppConfig {
     trustedProxy: e.TRUSTED_PROXY,
     email: { smtpUrl: e.SMTP_URL, from: e.EMAIL_FROM },
     outbox: { pollIntervalMs: e.OUTBOX_POLL_INTERVAL_MS },
+    jobs: {
+      bookingExpiryIntervalMs: e.BOOKING_EXPIRY_INTERVAL_MS,
+      cleanupIntervalMs: e.CLEANUP_INTERVAL_MS,
+    },
     log: { level: e.LOG_LEVEL, format: e.LOG_FORMAT },
   };
 }

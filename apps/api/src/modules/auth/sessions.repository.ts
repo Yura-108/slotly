@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { eq } from 'drizzle-orm';
+import { eq, inArray, lte } from 'drizzle-orm';
 import type { Executor } from '../../infrastructure/database/database.module';
 import { type NewSessionRow, type SessionRow, sessions } from './sessions.schema';
 
@@ -29,6 +29,20 @@ export class SessionsRepository {
   }
 
   /** Password change or reset ends every session of the user (ADR-005). */
+  /** Cleanup: up to `limit` sessions past their expiry; returns how many were deleted. */
+  async deleteExpired(db: Executor, now: Date, limit: number): Promise<number> {
+    const batch = db
+      .select({ id: sessions.id })
+      .from(sessions)
+      .where(lte(sessions.expiresAt, now))
+      .limit(limit);
+    const deleted = await db
+      .delete(sessions)
+      .where(inArray(sessions.id, batch))
+      .returning({ id: sessions.id });
+    return deleted.length;
+  }
+
   async deleteAllForUser(db: Executor, userId: string): Promise<void> {
     await db.delete(sessions).where(eq(sessions.userId, userId));
   }

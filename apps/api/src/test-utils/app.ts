@@ -28,6 +28,8 @@ export async function startTestApp(options: { smtpUrl?: string } = {}): Promise<
     SMTP_URL: options.smtpUrl ?? 'smtp://127.0.0.1:1',
     EMAIL_FROM: 'Slotly <no-reply@slotly.test>',
     OUTBOX_POLL_INTERVAL_MS: '0',
+    BOOKING_EXPIRY_INTERVAL_MS: '0',
+    CLEANUP_INTERVAL_MS: '0',
   });
 
   const moduleRef = await Test.createTestingModule({ imports: [AppModule] })

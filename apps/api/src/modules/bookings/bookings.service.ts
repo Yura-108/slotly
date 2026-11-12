@@ -1,6 +1,6 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { AppConfig } from '../../infrastructure/config/config.schema';
-import { DATABASE, type Database } from '../../infrastructure/database/database.module';
+import { DATABASE, type Database, type Tx } from '../../infrastructure/database/database.module';
 import { NotificationsService, type OutboxMessage } from '../notifications/notifications.service';
 import { ServicesService } from '../services/services.service';
 import { type SpecialistCard, SpecialistsService } from '../specialists/specialists.service';
@@ -101,12 +101,14 @@ export class BookingsService {
 
     const row = await this.db.transaction(async (tx) => {
       await this.repository.lockSpecialistSchedule(tx, specialist.userId);
-      await this.repository.expireOverduePendingOverlapping(tx, {
+      const expired = await this.repository.expireOverduePendingOverlapping(tx, {
         specialistId: specialist.userId,
         startAt,
         endAt,
         now,
       });
+      // Their clients learn it the same way as from the expiry job (FR-61)
+      await this.notifyExpired(tx, expired);
       if (status === 'pending') {
         const pending = await this.repository.countActivePending(tx, {
           clientId,
@@ -256,6 +258,49 @@ export class BookingsService {
     });
 
     return toView(updated, party, specialist, client.name, now);
+  }
+
+  /**
+   * FR-54: marks overdue requests expired in batches and emails their clients. Correctness
+   * does not depend on it — the effective status already treats them as expired (ADR-003);
+   * this is for the email and for the data to match reality. Returns how many expired.
+   */
+  async expireOverdue(now = new Date(), batchSize = 100): Promise<number> {
+    let total = 0;
+    for (;;) {
+      const expired = await this.db.transaction(async (tx) => {
+        const rows = await this.repository.expireOverduePending(tx, now, batchSize);
+        await this.notifyExpired(tx, rows);
+        return rows;
+      });
+      total += expired.length;
+      if (expired.length < batchSize) return total;
+    }
+  }
+
+  /** "Your request expired" to each client, in the same transaction as the expiry. */
+  private async notifyExpired(tx: Tx, rows: readonly BookingRow[]): Promise<void> {
+    if (rows.length === 0) return;
+    const [clients, cards] = await Promise.all([
+      this.users.getProfiles(rows.map((r) => r.clientId)),
+      this.specialists.getCards(rows.map((r) => r.specialistId)),
+    ]);
+    for (const row of rows) {
+      const client = clients.get(row.clientId);
+      const card = cards.get(row.specialistId);
+      if (!client || !card) continue; // accounts are never deleted; defensive only
+      await this.notifications.enqueue(tx, {
+        type: 'booking.expired',
+        payload: {
+          ...this.emailTime(row),
+          to: client.email,
+          name: client.name,
+          timeZone: client.timezone,
+          specialistName: card.displayName,
+          specialistUrl: `${this.config.appOrigin}/book/${card.slug}`,
+        },
+      });
+    }
   }
 
   private emailTime(row: BookingRow) {

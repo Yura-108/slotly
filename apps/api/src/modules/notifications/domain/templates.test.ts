@@ -157,3 +157,26 @@ describe('booking status emails', () => {
     expect(email.text).toContain('14:00–15:00 (Europe/Moscow)');
   });
 });
+
+describe('expired request email', () => {
+  it('offers to choose another time on the specialist page', () => {
+    const email = renderEmail({
+      type: 'booking.expired',
+      payload: {
+        to: 'c@example.test',
+        name: 'Анна',
+        serviceName: 'Консультация',
+        startAt: '2026-11-19T11:00:00.000Z',
+        endAt: '2026-11-19T12:00:00.000Z',
+        timeZone: 'Europe/Moscow',
+        bookingsUrl: 'https://slotly.example/bookings',
+        specialistName: 'Ирина',
+        specialistUrl: 'https://slotly.example/book/irina',
+      },
+    });
+    expect(email.subject).toBe('Заявка истекла: Консультация');
+    expect(email.text).toContain('осталась без ответа');
+    expect(email.text).toContain('14:00–15:00 (Europe/Moscow)');
+    expect(email.html).toContain('href="https://slotly.example/book/irina"');
+  });
+});

@@ -20,6 +20,7 @@ describe('loadConfig', () => {
       trustedProxy: 'loopback',
       email: { smtpUrl: validEnv.SMTP_URL, from: validEnv.EMAIL_FROM },
       outbox: { pollIntervalMs: 5000 },
+      jobs: { bookingExpiryIntervalMs: 60_000, cleanupIntervalMs: 3_600_000 },
       log: { level: 'info', format: 'json' },
     });
   });
