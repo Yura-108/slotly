@@ -12,13 +12,13 @@
 
 ## Документация
 
-| Документ                                     | Содержание                                                        |
-| -------------------------------------------- | ----------------------------------------------------------------- |
-| [docs/discovery.md](docs/discovery.md)       | проблема, пользователи, аналоги, границы продукта                 |
-| [docs/requirements.md](docs/requirements.md) | требования, MVP, жизненный цикл брони                             |
-| [docs/architecture/](docs/architecture/)     | модель данных, backend, API, frontend, логирование и конфигурация |
-| [docs/adr/](docs/adr/README.md)              | архитектурные решения                                             |
-| [docs/learning-log.md](docs/learning-log.md) | журнал обучения                                                   |
+| Документ                                     | Содержание                                                                      |
+| -------------------------------------------- | ------------------------------------------------------------------------------- |
+| [docs/discovery.md](docs/discovery.md)       | проблема, пользователи, аналоги, границы продукта                               |
+| [docs/requirements.md](docs/requirements.md) | требования, MVP, жизненный цикл брони                                           |
+| [docs/architecture/](docs/architecture/)     | модель данных, backend, API, frontend, логирование и конфигурация, тестирование |
+| [docs/adr/](docs/adr/README.md)              | архитектурные решения                                                           |
+| [docs/learning-log.md](docs/learning-log.md) | журнал обучения                                                                 |
 
 ## Требования к окружению
 
@@ -59,16 +59,17 @@ pnpm --filter @slotly/web dev       # http://localhost:3000, /api/* прокси
 
 ## Команды
 
-| Команда                                      | Что делает                                |
-| -------------------------------------------- | ----------------------------------------- |
-| `pnpm lint` / `typecheck` / `test`           | проверки во всех пакетах                  |
-| `pnpm format` / `format:check`               | Prettier                                  |
-| `pnpm --filter @slotly/api dev`              | api с hot reload                          |
-| `pnpm --filter @slotly/web dev`              | web с hot reload                          |
-| `pnpm --filter @slotly/api db:generate`      | сгенерировать SQL-миграцию по схеме       |
-| `pnpm --filter @slotly/api db:migrate`       | применить миграции                        |
-| `pnpm --filter @slotly/api openapi:generate` | обновить контракт `apps/api/openapi.json` |
-| `pnpm --filter @slotly/web api:types`        | типы клиента web из `openapi.json`        |
+| Команда                                      | Что делает                                                                                                                                |
+| -------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------- |
+| `pnpm lint` / `typecheck` / `test`           | проверки во всех пакетах                                                                                                                  |
+| `pnpm format` / `format:check`               | Prettier                                                                                                                                  |
+| `pnpm test:e2e`                              | браузерные e2e (Playwright) на изолированном стеке; нужен Docker, один раз — `pnpm --filter @slotly/e2e exec playwright install chromium` |
+| `pnpm --filter @slotly/api dev`              | api с hot reload                                                                                                                          |
+| `pnpm --filter @slotly/web dev`              | web с hot reload                                                                                                                          |
+| `pnpm --filter @slotly/api db:generate`      | сгенерировать SQL-миграцию по схеме                                                                                                       |
+| `pnpm --filter @slotly/api db:migrate`       | применить миграции                                                                                                                        |
+| `pnpm --filter @slotly/api openapi:generate` | обновить контракт `apps/api/openapi.json`                                                                                                 |
+| `pnpm --filter @slotly/web api:types`        | типы клиента web из `openapi.json`                                                                                                        |
 
 ## Процесс разработки
 
