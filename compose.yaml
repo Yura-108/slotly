@@ -24,7 +24,7 @@ services:
       retries: 10
 
   mailpit:
-    image: axllent/mailpit:v1.33.0
+    image: axllent/mailpit:v1.33.1
     restart: unless-stopped
     environment:
       # Skip the reverse DNS lookup of the SMTP client: on Docker Desktop it can stall
