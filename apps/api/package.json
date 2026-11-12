@@ -18,9 +18,9 @@
     "test:mutation": "stryker run"
   },
   "dependencies": {
-    "@nestjs/common": "11.2.8",
-    "@nestjs/core": "11.2.8",
-    "@nestjs/platform-express": "11.2.8",
+    "@nestjs/common": "11.2.9",
+    "@nestjs/core": "11.2.9",
+    "@nestjs/platform-express": "11.2.9",
     "@nestjs/swagger": "11.4.8",
     "@nestjs/throttler": "6.7.1",
     "@node-rs/argon2": "2.2.2",
@@ -39,7 +39,7 @@
   "devDependencies": {
     "@eslint/js": "10.0.1",
     "@nestjs/cli": "11.0.24",
-    "@nestjs/testing": "11.2.8",
+    "@nestjs/testing": "11.2.9",
     "@stryker-mutator/core": "10.1.1",
     "@stryker-mutator/typescript-checker": "10.1.1",
     "@stryker-mutator/vitest-runner": "10.1.1",

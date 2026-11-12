@@ -13,12 +13,16 @@
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "test:e2e": "pnpm --filter @slotly/e2e test:e2e",
-    "test:e2e:report": "pnpm --filter @slotly/e2e report"
+    "test:e2e:report": "pnpm --filter @slotly/e2e report",
+    "audit:prod": "pnpm audit --prod",
+    "secrets:check": "secretlint \"**/*\""
   },
   "devDependencies": {
+    "@secretlint/secretlint-rule-preset-recommend": "13.1.0",
     "husky": "9.1.7",
     "lint-staged": "17.6.0",
     "prettier": "3.9.10",
+    "secretlint": "13.1.0",
     "typescript": "6.0.3"
   }
 }
