@@ -12,7 +12,10 @@
     "db:generate": "drizzle-kit generate",
     "db:migrate": "drizzle-kit migrate",
     "lint:deps": "depcruise src --config .dependency-cruiser.cjs",
-    "openapi:generate": "nest build && node dist/generate-openapi.js"
+    "openapi:generate": "nest build && node dist/generate-openapi.js",
+    "test:unit": "vitest run --config vitest.unit.config.mts",
+    "test:coverage": "vitest run --config vitest.unit.config.mts --coverage",
+    "test:mutation": "stryker run"
   },
   "dependencies": {
     "@nestjs/common": "11.2.8",
@@ -37,6 +40,9 @@
     "@eslint/js": "10.0.1",
     "@nestjs/cli": "11.0.24",
     "@nestjs/testing": "11.2.8",
+    "@stryker-mutator/core": "10.1.1",
+    "@stryker-mutator/typescript-checker": "10.1.1",
+    "@stryker-mutator/vitest-runner": "10.1.1",
     "@swc/core": "1.16.22",
     "@testcontainers/postgresql": "12.2.1",
     "@types/cookie-parser": "1.4.10",
@@ -44,6 +50,7 @@
     "@types/node": "24.19.2",
     "@types/pg": "8.23.1",
     "@types/supertest": "7.2.1",
+    "@vitest/coverage-v8": "5.1.0",
     "dependency-cruiser": "18.7.2",
     "drizzle-kit": "0.31.11",
     "eslint": "10.14.0",

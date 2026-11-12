@@ -9,3 +9,5 @@ e2e/playwright-report/
 # Generated contract (pnpm --filter @slotly/api openapi:generate)
 apps/api/openapi.json
 apps/web/src/shared/api/schema.d.ts
+**/reports/
+**/.stryker-tmp/

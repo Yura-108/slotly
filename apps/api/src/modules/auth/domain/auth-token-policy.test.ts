@@ -16,4 +16,10 @@ describe('auth token policy', () => {
     expect(url.search).toBe('');
     expect(url.pathname).not.toContain('secret');
   });
+
+  it('leads each purpose to its own page', () => {
+    expect(authTokenLink('https://slotly.example', 'verify_email', 't')).toBe(
+      'https://slotly.example/verify-email#token=t',
+    );
+  });
 });

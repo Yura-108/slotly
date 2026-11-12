@@ -28,6 +28,10 @@ describe('session policy', () => {
   it('does not refresh more often than once an hour', () => {
     const session = startSession(t0);
     expect(checkSession(session, at(59 * 60 * 1000))).toEqual({ status: 'active', refresh: null });
+    // Exactly one hour later the refresh is due
+    expect(checkSession(session, at(60 * 60 * 1000))).toMatchObject({
+      refresh: { lastSeenAt: at(60 * 60 * 1000) },
+    });
   });
 
   it('slides the expiry forward after an hour of use', () => {

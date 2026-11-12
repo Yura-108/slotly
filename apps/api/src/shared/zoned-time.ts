@@ -41,6 +41,7 @@ function formatter(timeZone: string): Intl.DateTimeFormat {
 function wallClockMs(instant: number, timeZone: string): number {
   const parts: Record<string, number> = {};
   for (const { type, value } of formatter(timeZone).formatToParts(instant)) {
+    // Stryker disable next-line ConditionalExpression: literal parts are stored under "literal" and never read
     if (type !== 'literal') parts[type] = Number(value);
   }
   return Date.UTC(
@@ -49,13 +50,17 @@ function wallClockMs(instant: number, timeZone: string): number {
     parts['day'] ?? 1,
     parts['hour'] ?? 0,
     parts['minute'] ?? 0,
+    // Stryker disable next-line LogicalOperator,StringLiteral: only whole minutes are resolved, seconds are 0
     parts['second'] ?? 0,
   );
 }
 
-/** Zone offset at `instant` in ms (Berlin in winter: +3 600 000). */
+/**
+ * Zone offset at `instant` in ms (Berlin in winter: +3 600 000). Called only for whole
+ * minutes (see resolveLocalTime), so the wall clock and the instant align exactly.
+ */
 function offsetMs(instant: number, timeZone: string): number {
-  return wallClockMs(instant, timeZone) - (instant - (((instant % 1000) + 1000) % 1000));
+  return wallClockMs(instant, timeZone) - instant;
 }
 
 const pad = (n: number, width = 2) => String(n).padStart(width, '0');
@@ -88,11 +93,14 @@ export function toLocalDateTime(instant: Date, timeZone: string): LocalDateTime 
 export function resolveLocalTime(date: string, minute: number, timeZone: string): Date[] {
   const wall = dateMs(date) + minute * MINUTE_MS;
   const offsets = new Set([offsetMs(wall - DAY_MS, timeZone), offsetMs(wall + DAY_MS, timeZone)]);
-  return [...offsets]
+  const candidates = [...offsets]
     .map((offset) => wall - offset)
-    .filter((candidate) => wallClockMs(candidate, timeZone) === wall)
-    .sort((a, b) => a - b)
-    .map((ms) => new Date(ms));
+    .filter((candidate) => wallClockMs(candidate, timeZone) === wall);
+  // Earliest first is the contract. On fall back the offset decreases, so the candidates
+  // already come in this order and a broken sort goes unnoticed — hence the marker:
+  // Stryker disable next-line MethodExpression,ArithmeticOperator: candidates are already ordered
+  candidates.sort((a, b) => a - b);
+  return candidates.map((ms) => new Date(ms));
 }
 
 /** "2026-01-31" + 1 → "2026-02-01". */

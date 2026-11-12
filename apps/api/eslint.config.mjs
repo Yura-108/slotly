@@ -3,7 +3,8 @@ import { defineConfig } from 'eslint/config';
 import tseslint from 'typescript-eslint';
 
 export default defineConfig(
-  { ignores: ['dist/', 'drizzle/'] },
+  // Generated: build output, migrations, coverage and mutation reports
+  { ignores: ['dist/', 'drizzle/', 'coverage/', 'reports/', '.stryker-tmp/'] },
   js.configs.recommended,
   tseslint.configs.recommendedTypeChecked,
   {
@@ -44,7 +45,12 @@ export default defineConfig(
     },
   },
   {
-    files: ['eslint.config.mjs', '.dependency-cruiser.cjs', '.lintstagedrc.mjs'],
+    files: [
+      'eslint.config.mjs',
+      '.dependency-cruiser.cjs',
+      '.lintstagedrc.mjs',
+      'stryker.config.mjs',
+    ],
     extends: [tseslint.configs.disableTypeChecked],
   },
   {

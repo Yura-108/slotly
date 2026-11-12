@@ -2,7 +2,6 @@ import { addDays, isoWeekday, resolveLocalTime, toLocalDateTime } from '../../..
 
 const MINUTE_MS = 60_000;
 const DAY_MS = 24 * 60 * MINUTE_MS;
-const END_OF_DAY = 1440;
 
 /** A half-open interval of time [start, end). */
 export interface TimeRange {
@@ -59,7 +58,6 @@ export function calculateSlots(q: SlotQuery): TimeRange[] {
     q.now.getTime() + q.minNoticeMinutes * MINUTE_MS,
   );
   const latest = Math.min(q.range.end.getTime(), q.now.getTime() + q.bookingHorizonDays * DAY_MS);
-  if (earliest >= latest) return [];
 
   const slots: TimeRange[] = [];
   const lastDate = toLocalDateTime(new Date(latest), q.timeZone).date;
@@ -77,6 +75,7 @@ export function calculateSlots(q: SlotQuery): TimeRange[] {
     let previousEnd = -Infinity;
     for (const interval of intervals) {
       const fitsInterval = intervalEndCheck(date, interval.endMinute, q.timeZone);
+      // Stryker disable next-line EqualityOperator: a slot starting at the interval end never fits it
       for (let minute = interval.startMinute; minute < interval.endMinute;) {
         const [first] = resolveLocalTime(date, minute, q.timeZone);
         minute += q.durationMinutes;
@@ -99,8 +98,8 @@ export function calculateSlots(q: SlotQuery): TimeRange[] {
 
 /**
  * Whether a slot ending at a given instant fits a working interval ending at `endMinute`
- * of `date` (24:00 = the next midnight). The interval ends when the clock first shows
- * that reading. If spring forward skips the reading, the clock jumps over it: the slot
+ * of `date` (1440, i.e. 24:00, resolves to the next midnight). The interval ends when the
+ * clock first shows that reading. If spring forward skips the reading, the clock jumps over it: the slot
  * fits when its last minute is still before the reading on the same date.
  */
 function intervalEndCheck(
@@ -108,11 +107,11 @@ function intervalEndCheck(
   endMinute: number,
   timeZone: string,
 ): (slotEnd: Date) => boolean {
-  const [endDate, minute] = endMinute === END_OF_DAY ? [addDays(date, 1), 0] : [date, endMinute];
-  const [intervalEnd] = resolveLocalTime(endDate, minute, timeZone);
+  const [intervalEnd] = resolveLocalTime(date, endMinute, timeZone);
   if (intervalEnd) return (slotEnd) => slotEnd <= intervalEnd;
   return (slotEnd) => {
     const last = toLocalDateTime(new Date(slotEnd.getTime() - MINUTE_MS), timeZone);
+    // Stryker disable next-line EqualityOperator: endMinute is a skipped reading here, the clock never shows it
     return last.date === date && last.minute < endMinute;
   };
 }

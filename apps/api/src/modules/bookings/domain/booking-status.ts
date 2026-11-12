@@ -24,6 +24,7 @@ export interface BookingState {
  * background job updates the row.
  */
 export function effectiveStatus(booking: BookingState, now: Date): BookingStatus {
+  // Stryker disable next-line ConditionalExpression,LogicalOperator: only pending has expires_at (CHECK bookings_expires_only_pending); the status test states the rule
   if (booking.status === 'pending' && booking.expiresAt && booking.expiresAt <= now) {
     return 'expired';
   }
@@ -65,6 +66,7 @@ export function refusal(
   if (party === 'client' && action !== 'cancel') return 'forbidden';
   if (now >= booking.startAt) return 'started';
   const status = effectiveStatus(booking, now);
+  // Stryker disable next-line ConditionalExpression,LogicalOperator: a client's other actions returned "forbidden" above, a specialist's cancel is always allowed before the start
   if (party === 'client' && action === 'cancel' && status === 'confirmed') {
     return 'deadline_passed';
   }
