@@ -4,7 +4,7 @@
 
 ## Перед изменениями
 
-- Прочитай релевантные документы: [requirements](docs/requirements.md), [data-model](docs/architecture/data-model.md), [backend](docs/architecture/backend.md), [api](docs/architecture/api.md), [frontend](docs/architecture/frontend.md), [ADR](docs/adr/README.md).
+- Прочитай релевантные документы: [requirements](docs/requirements.md), [data-model](docs/architecture/data-model.md), [backend](docs/architecture/backend.md), [api](docs/architecture/api.md), [frontend](docs/architecture/frontend.md), [security](docs/architecture/security.md), [ADR](docs/adr/README.md).
 - Изучи текущую реализацию затрагиваемого кода до правки.
 - Решение, меняющее архитектуру или соглашения, требует нового ADR и согласования с пользователем.
 
@@ -44,7 +44,7 @@
 - Граф модулей api в `apps/api/.dependency-cruiser.cjs` совпадает с [backend.md](docs/architecture/backend.md) §2: новое ребро — только вместе с правкой документа и согласованием.
 - api: `pnpm --filter @slotly/api dev | test | db:generate | db:migrate | openapi:generate`; web: `pnpm --filter @slotly/web dev | build | test | api:types`.
 - Изменил DTO или маршрут — перегенерируй `openapi.json` и `apps/web/src/shared/api/schema.d.ts` и закоммить оба файла.
-- Маршруты api закрыты по умолчанию (глобальный `SessionGuard`); открытый маршрут помечается `@Public()` осознанно.
+- Маршруты api закрыты по умолчанию (глобальный `SessionGuard`); открытый маршрут помечается `@Public()` осознанно и добавляется в `PUBLIC_ROUTES` теста матрицы доступа (`apps/api/src/infrastructure/http/access-matrix.e2e.test.ts`) — иначе тест падает.
 - Версии зависимостей точные; скрипты установки разрешаются только через `allowBuilds` в `pnpm-workspace.yaml`; слишком свежие релизы не исключаются из `minimumReleaseAge` — берётся предыдущий патч.
 
 # Concept Loom
