@@ -23,3 +23,10 @@ peerDependencyRules:
   allowedVersions:
     # Declares typescript ^5; generation verified on 6.0 (TS 6 keeps the 5.x compiler API)
     openapi-typescript>typescript: '6'
+
+# Security fixes inside the same major, where the parent pins an exact vulnerable version.
+# Each entry is removed once the parent moves on (security.md, A03)
+overrides:
+  # @stryker-mutator/core 10.1 → typed-rest-client 2.3.1 pins qs 6.15.1 (GHSA-6pq8-jhm2-2vcw and
+  # three more DoS advisories); typed-rest-client 3.x already requires ^6.16.1
+  'typed-rest-client>qs': 6.17.1

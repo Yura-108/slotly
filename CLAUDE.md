@@ -38,7 +38,8 @@
 ## Команды
 
 - Инфраструктура: `docker compose up -d --wait` (PostgreSQL на `localhost:55432`, Mailpit UI `http://localhost:8025`).
-- Проверки всего репозитория: `pnpm lint` (ESLint + границы модулей через dependency-cruiser), `pnpm typecheck`, `pnpm test`, `pnpm format:check`.
+- Проверки всего репозитория: `pnpm lint` (ESLint + границы модулей через dependency-cruiser), `pnpm typecheck`, `pnpm test`, `pnpm format:check`, `pnpm audit:prod`, `pnpm secrets:check`.
+- Уязвимая зависимость: обновить родителя; если он закрепил точную версию — `overrides` в той же мажорной с комментарием; иначе принятый риск только для dev и только с записью в [ADR-015](docs/adr/015-dependencies-and-secrets.md).
 - Домен API: `pnpm --filter @slotly/api test:coverage` и `test:mutation` (Stryker). Выживший мутант — новый тест или пометка `// Stryker disable next-line …: причина` для эквивалентного; показатель держится на 100%.
 - Браузерные e2e: `pnpm test:e2e` (Playwright, пакет `e2e/`, свой стек на портах 3100/4100 и база `slotly_e2e`; [testing.md](docs/architecture/testing.md)). Тест создаёт свои уникальные данные; тестовых переключателей в коде приложения нет.
 - Граф модулей api в `apps/api/.dependency-cruiser.cjs` совпадает с [backend.md](docs/architecture/backend.md) §2: новое ребро — только вместе с правкой документа и согласованием.
