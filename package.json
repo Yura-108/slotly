@@ -23,6 +23,6 @@
     "lint-staged": "17.6.0",
     "prettier": "3.9.10",
     "secretlint": "13.1.0",
-    "typescript": "6.0.3"
+    "typescript": "7.0.2"
   }
 }
