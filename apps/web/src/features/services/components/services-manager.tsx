@@ -4,7 +4,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
-import { z } from 'zod';
+import { z } from '@/shared/lib/zod';
 import { api } from '@/shared/api/client';
 import { fieldErrors, problemMessage } from '@/shared/api/errors';
 import { formatDuration } from '@/shared/lib/format';

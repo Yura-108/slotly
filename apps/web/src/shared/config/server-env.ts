@@ -10,6 +10,8 @@ const serverEnvSchema = z.object({
   SESSION_COOKIE_NAME: z.string().min(1).default('__Host-session'),
   // Build output directory; the e2e stack builds into its own so dev's .next is untouched
   NEXT_DIST_DIR: z.string().min(1).default('.next'),
+  // Set by Next.js itself: development for next dev, production for next build/start
+  NODE_ENV: z.enum(['development', 'production', 'test']).default('production'),
 });
 
 export type ServerEnv = z.infer<typeof serverEnvSchema>;

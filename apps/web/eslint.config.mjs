@@ -23,4 +23,23 @@ export default defineConfig([
     files: ['src/shared/config/**', '*.config.ts', '*.config.mjs'],
     rules: { 'no-restricted-properties': 'off' },
   },
+  {
+    // Zod in the browser must run without eval under the page CSP (ADR-014)
+    files: ['src/**'],
+    ignores: ['src/shared/lib/zod.ts', 'src/shared/config/server-env.ts'],
+    rules: {
+      'no-restricted-imports': [
+        'error',
+        {
+          paths: [
+            {
+              name: 'zod',
+              message:
+                "Import z from '@/shared/lib/zod': it turns off Zod's eval probe blocked by CSP.",
+            },
+          ],
+        },
+      ],
+    },
+  },
 ]);

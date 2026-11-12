@@ -19,3 +19,4 @@ ADR фиксирует значимое архитектурное решени�
 | [011](011-architecture-checks-and-git-hooks.md) | Проверка границ: dependency-cruiser; pre-commit: husky + lint-staged                    | Принято | 2026-11-09 |
 | [012](012-outbox-and-email-delivery.md)         | Outbox в PostgreSQL, обработчик с арендой, SMTP через nodemailer                        | Принято | 2026-11-10 |
 | [013](013-testing-strategy.md)                  | Тестирование: уровни; браузерные e2e на Playwright против изолированного стека          | Принято | 2026-11-12 |
+| [014](014-security-headers-csp.md)              | Заголовки безопасности; CSP с nonce на каждый запрос, `no-store` в API                  | Принято | 2026-11-12 |
