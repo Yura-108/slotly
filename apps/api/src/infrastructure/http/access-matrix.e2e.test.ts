@@ -4,6 +4,7 @@ import request from 'supertest';
 import type { App } from 'supertest/types';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { startTestApp, TEST_ORIGIN, type TestApp } from '../../test-utils/app';
+import { API_SECURITY_HEADERS } from './security-headers';
 
 /**
  * Routes anyone may call without a session (threat model, docs/architecture/security.md).
@@ -71,6 +72,13 @@ const probe = (server: App, route: Route, origin?: string) => {
   return SAFE_METHODS.has(route.method) ? req : req.send({});
 };
 
+/** Every response, success or error, carries the API security headers (security.md, A02). */
+function expectSecurityHeaders(res: request.Response, what: string) {
+  for (const [name, value] of Object.entries(API_SECURITY_HEADERS)) {
+    expect(res.get(name), `${name} on ${what}`).toBe(value);
+  }
+}
+
 let testApp: TestApp;
 let server: App;
 let routes: Route[];
@@ -90,6 +98,7 @@ describe('access matrix: every route of the app', () => {
     const publicRoutes: string[] = [];
     for (const route of routes) {
       const res = await probe(server, route, TEST_ORIGIN);
+      expectSecurityHeaders(res, key(route));
       if (res.status === 401) {
         expect(res.body, key(route)).toMatchObject({ code: 'UNAUTHENTICATED' });
       } else {
@@ -111,7 +120,13 @@ describe('access matrix: every route of the app', () => {
         const res = await probe(server, route, origin);
         expect(res.status, `${key(route)} from ${origin ?? 'no Origin'}`).toBe(403);
         expect(res.body).toMatchObject({ code: 'ORIGIN_NOT_ALLOWED' });
+        expectSecurityHeaders(res, key(route));
       }
     }
+  });
+
+  it('sends the security headers on unknown routes too', async () => {
+    const res = await request(server).get('/no-such-route').expect(404);
+    expectSecurityHeaders(res, 'a 404');
   });
 });

@@ -1,4 +1,4 @@
-import { z } from 'zod';
+import { z } from '@/shared/lib/zod';
 
 /**
  * Client-side checks only for quick feedback (frontend.md §4). The API validates again
