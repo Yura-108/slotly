@@ -38,7 +38,7 @@
   },
   "devDependencies": {
     "@eslint/js": "10.0.1",
-    "@nestjs/cli": "11.0.24",
+    "@nestjs/cli": "12.0.11",
     "@nestjs/testing": "11.2.9",
     "@stryker-mutator/core": "10.1.1",
     "@stryker-mutator/typescript-checker": "10.1.1",
