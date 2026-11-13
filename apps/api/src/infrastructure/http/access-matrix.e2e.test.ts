@@ -13,7 +13,8 @@ import { API_SECURITY_HEADERS } from './security-headers';
  * with the bug. Adding a route here is a security decision, made in review.
  */
 const PUBLIC_ROUTES = [
-  'GET /health',
+  'GET /health/live',
+  'GET /health/ready',
   'POST /auth/register',
   'POST /auth/login',
   'POST /auth/logout',

@@ -57,7 +57,7 @@ test.describe('security headers and Content-Security-Policy (ADR-014)', () => {
   });
 
   test('API responses through the web proxy keep the API policy', async ({ request }) => {
-    const res = await request.get('/api/health');
+    const res = await request.get('/api/health/live');
     expect(res.ok()).toBe(true);
     const headers = res.headers();
     expect(headers['cache-control']).toBe('no-store');

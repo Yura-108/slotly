@@ -45,7 +45,7 @@ docker compose up -d --wait   # PostgreSQL 18 (localhost:55432) и Mailpit
 ```bash
 cp apps/api/.env.example apps/api/.env
 pnpm --filter @slotly/api db:migrate  # применить миграции к локальной БД
-pnpm --filter @slotly/api dev       # http://localhost:4000/health
+pnpm --filter @slotly/api dev       # http://127.0.0.1:4000/health/ready
 ```
 
 ### web

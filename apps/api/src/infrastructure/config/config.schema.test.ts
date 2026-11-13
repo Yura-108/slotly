@@ -14,7 +14,9 @@ describe('loadConfig', () => {
 
     expect(config).toEqual({
       port: 4000,
+      host: '127.0.0.1',
       databaseUrl: validEnv.DATABASE_URL,
+      database: { connectTimeoutMs: 2000, statementTimeoutMs: 5000 },
       appOrigin: validEnv.APP_ORIGIN,
       session: { cookieName: '__Host-session', cookieSecure: true },
       trustedProxy: 'loopback',
@@ -46,6 +48,13 @@ describe('loadConfig', () => {
 
   it('coerces PORT from string', () => {
     expect(loadConfig({ ...validEnv, PORT: '8080' }).port).toBe(8080);
+  });
+
+  it('accepts an IP address as HOST, not a host name', () => {
+    expect(loadConfig({ ...validEnv, HOST: '0.0.0.0' }).host).toBe('0.0.0.0');
+    expect(loadConfig({ ...validEnv, HOST: '::1' }).host).toBe('::1');
+    // "localhost" may resolve to ::1 or 127.0.0.1: the bound interface must be explicit
+    expect(() => loadConfig({ ...validEnv, HOST: 'localhost' })).toThrow(ConfigValidationError);
   });
 
   it('reports every invalid variable at once', () => {

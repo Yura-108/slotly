@@ -1,4 +1,8 @@
-import { BadRequestException, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  NotFoundException,
+  ServiceUnavailableException,
+} from '@nestjs/common';
 import { ThrottlerException } from '@nestjs/throttler';
 import { ZodSerializationException, ZodValidationException } from 'nestjs-zod';
 import { describe, expect, it } from 'vitest';
@@ -69,5 +73,38 @@ describe('toProblemDetails', () => {
     const problem = toProblemDetails(new UncategorizedError('table users is locked'));
     expect(problem).toMatchObject(internal);
     expect(JSON.stringify(problem)).not.toMatch(/users|SECRET/);
+  });
+
+  it('reports client errors of Express middleware (body-parser) with their 4xx status', () => {
+    const tooLarge = Object.assign(new Error('request entity too large'), {
+      status: 413,
+      expose: true,
+      type: 'entity.too.large',
+    });
+    expect(toProblemDetails(tooLarge)).toMatchObject({
+      status: 413,
+      code: 'PAYLOAD_TOO_LARGE',
+      detail: 'Запрос не может быть выполнен.',
+    });
+    // Not marked safe to expose, or not a client error: stays an opaque 500
+    const hidden = Object.assign(new Error('x'), { status: 413 });
+    const server = Object.assign(new Error('x'), { status: 502, expose: true });
+    expect(toProblemDetails(hidden)).toMatchObject({ status: 500 });
+    expect(toProblemDetails(server)).toMatchObject({ status: 500 });
+  });
+
+  it('answers an unavailable database with 503 that reveals nothing about it', () => {
+    const refused = Object.assign(new Error('connect ECONNREFUSED 10.0.0.5:5432'), {
+      code: 'ECONNREFUSED',
+    });
+    const problem = toProblemDetails(new Error('Failed query: select …', { cause: refused }));
+    expect(problem).toEqual({
+      type: 'https://slotly.app/errors/service-unavailable',
+      title: 'Сервис временно недоступен',
+      status: 503,
+      code: 'SERVICE_UNAVAILABLE',
+      detail: 'Сервис временно недоступен. Попробуйте через минуту.',
+    });
+    expect(toProblemDetails(new ServiceUnavailableException('pool drained'))).toEqual(problem);
   });
 });

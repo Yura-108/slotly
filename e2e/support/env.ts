@@ -8,7 +8,8 @@ const env = process.env;
 export const E2E = {
   apiPort: 4100,
   webPort: 3100,
-  apiUrl: 'http://localhost:4100',
+  // The API listens on loopback IPv4 only (HOST); "localhost" may resolve to ::1 first
+  apiUrl: 'http://127.0.0.1:4100',
   webUrl: 'http://localhost:3100',
   /** Superuser connection used only to drop and create the e2e database. */
   adminDatabaseUrl:

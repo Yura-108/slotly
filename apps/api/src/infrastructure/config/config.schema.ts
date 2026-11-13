@@ -3,7 +3,13 @@ import { z } from 'zod';
 
 const envSchema = z.object({
   PORT: z.coerce.number().int().min(1).max(65535).default(4000),
+  // Interface to accept connections on. Loopback by default: only the web server on the same
+  // machine reaches the API. A container sets 0.0.0.0 (security.md, A02)
+  HOST: z.union([z.ipv4(), z.ipv6()]).default('127.0.0.1'),
   DATABASE_URL: z.url({ protocol: /^postgres(ql)?$/ }),
+  // Fail fast instead of queueing requests while the database is unreachable (ADR-016)
+  DB_CONNECT_TIMEOUT_MS: z.coerce.number().int().min(1).default(2000),
+  DB_STATEMENT_TIMEOUT_MS: z.coerce.number().int().min(1).default(5000),
   APP_ORIGIN: z.url({ protocol: /^https?$/ }),
   LOG_LEVEL: z.enum(['fatal', 'error', 'warn', 'info', 'debug', 'trace']).default('info'),
   LOG_FORMAT: z.enum(['json', 'pretty']).default('json'),
@@ -32,7 +38,14 @@ type Env = z.infer<typeof envSchema>;
  */
 export abstract class AppConfig {
   declare readonly port: number;
+  declare readonly host: string;
   declare readonly databaseUrl: string;
+  declare readonly database: {
+    /** How long a request waits for a pool connection before the API answers 503. */
+    readonly connectTimeoutMs: number;
+    /** PostgreSQL cancels a statement running longer than this (statement_timeout). */
+    readonly statementTimeoutMs: number;
+  };
   /** Bare origin (`scheme://host[:port]`) of the web app: Origin check, links in emails. */
   declare readonly appOrigin: string;
   declare readonly session: {
@@ -80,7 +93,12 @@ export function loadConfig(env: Record<string, string | undefined>): AppConfig {
   }
   return {
     port: e.PORT,
+    host: e.HOST,
     databaseUrl: e.DATABASE_URL,
+    database: {
+      connectTimeoutMs: e.DB_CONNECT_TIMEOUT_MS,
+      statementTimeoutMs: e.DB_STATEMENT_TIMEOUT_MS,
+    },
     // Compared with the Origin header byte for byte, so keep only scheme://host[:port]
     appOrigin: new URL(e.APP_ORIGIN).origin,
     session: { cookieName: e.SESSION_COOKIE_NAME, cookieSecure: e.COOKIE_SECURE },

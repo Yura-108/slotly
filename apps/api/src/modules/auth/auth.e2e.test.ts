@@ -235,7 +235,8 @@ describe('cross-cutting HTTP rules', () => {
     expect(response.body).toMatchObject({ code: 'NOT_FOUND' });
   });
 
-  it('keeps the health check public', async () => {
-    await client().get('/health').expect(200, { status: 'ok' });
+  it('keeps the health probes public', async () => {
+    await client().get('/health/live').expect(200, { status: 'ok' });
+    await client().get('/health/ready').expect(200, { status: 'ok' });
   });
 });
