@@ -31,7 +31,7 @@ Dependabot предложит обновление, как только роди
 ### Проверки
 
 - `pnpm audit:prod` (`pnpm audit --prod`) — любая уязвимость в production-зависимостях роняет проверку; в CI — с этапа 8. Dev-зависимости в неё не входят: неисправимое уведомление сделало бы её вечно красной.
-- **Dependabot** (`.github/dependabot.yml`): обновления безопасности — сразу; версии — раз в неделю для npm (pnpm), `docker-compose` и `github-actions`. Минорные и патчи — одним PR, мажорные — по одному. `cooldown` 3 дня (мажорные — 14) — то же, что `minimumReleaseAge` pnpm: свежий релиз ещё может оказаться скомпрометированным.
+- **Dependabot** (`.github/dependabot.yml`): обновления безопасности — сразу; версии — раз в неделю для npm (pnpm), `docker-compose` и `github-actions`. Минорные и патчи — одним PR из всех папок workspace. Мажорные версии npm и Docker Compose плановыми обновлениями не предлагаются: это миграции (`@types/node` привязан к Node 24; TypeScript, Nest, PostgreSQL меняют код или данные), их место — ROADMAP. Без этого правила первый запуск открыл 14 PR, мажорные — по одному на каждую папку workspace. Документация GitHub противоречива в том, действует ли `ignore` на обновления безопасности; страховка — `pnpm audit:prod`, который падает при уязвимости в production независимо от Dependabot. Образы PostgreSQL и Mailpit тестовые контейнеры берут из `compose.yaml` (`test-utils/compose-image.ts`): Dependabot обновляет только его, и копия тега в коде тестов отстала бы молча. `cooldown` 3 дня — то же, что `minimumReleaseAge` pnpm: свежий релиз ещё может оказаться скомпрометированным.
 
 ### Секреты
 
