@@ -174,7 +174,7 @@ jobs:
           # The base commit is needed to see what the change touched
           fetch-depth: 0
           persist-credentials: false
-      # Stryker takes ~10 minutes on a runner: it runs when the mutated code, its tests or its
+      # Stryker takes ~3.5 minutes on a runner (e2e: 1.5): it runs when the mutated code, its tests or its
       # tooling change, and weekly in full. The decision is inside the job (not `on.paths`),
       # so the required check always reports instead of waiting forever
       - name: Did the domain change?
