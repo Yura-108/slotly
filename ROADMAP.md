@@ -14,10 +14,17 @@
 | 6   | Тестирование и качество                                             | ✅     | [testing.md](docs/architecture/testing.md), [ADR-013](docs/adr/013-testing-strategy.md)                          |
 | 7   | Безопасность и надёжность                                           | ✅     | [security.md](docs/architecture/security.md)                                                                     |
 | 8   | CI/CD                                                               | ✅     | [ADR-017](docs/adr/017-continuous-integration.md), [ADR-018](docs/adr/018-container-images.md)                   |
-| 9   | Production и эксплуатация                                           | ⏳     | —                                                                                                                |
+| 9   | Production и эксплуатация                                           | 🔄     | [ADR-019](docs/adr/019-production-like-deployment.md)                                                            |
 | 10  | Ретроспектива                                                       | ⏳     | —                                                                                                                |
 
 ## Текущий шаг
+
+Этап 9 — production и эксплуатация, локально без хостинга и домена (план утверждён 2026-11-13), срез на PR:
+
+1. ✅ Production-подобная среда и деплой ([ADR-019](docs/adr/019-production-like-deployment.md)): Caddy с HTTPS, закрытая сеть, роли БД без DDL для API, `deploy.sh` с проверкой provenance и запуском по digest, миграции expand/contract, Trivy в CI.
+2. Наблюдаемость: метрики, Prometheus, Grafana, Loki, алерты (5xx, 401/403/429, outbox `failed`, readiness), отчёты CSP.
+3. Бэкапы и учения по восстановлению, RPO/RTO по замерам.
+4. Runbook, «что изменится на настоящем хостинге», итог безопасности.
 
 Этап 8 — CI/CD (план утверждён 2026-11-13), срез на PR:
 
@@ -25,7 +32,7 @@
 2. ✅ Браузерные e2e в CI (артефакты трасс, нестабильный тест — провал); покрытие домена; Stryker с порогом 100% при изменении домена и раз в неделю.
 3. ✅ Docker-образы api и web ([ADR-018](docs/adr/018-container-images.md)): адрес API при запуске (`proxy.ts`), многоэтапная сборка, не root, миграции отдельным шагом, smoke-проверка в CI, публикация проверенных образов в GHCR с provenance на `main`.
 
-Этап 8 завершён 2026-11-13. Следующий — этап 9: production и эксплуатация.
+Этап 8 завершён 2026-11-13.
 
 Этап 7 — безопасность и надёжность (план утверждён 2026-11-12), срез на PR:
 
@@ -71,7 +78,7 @@
 
 ## Отложенные задачи
 
-- Этап 9: проверка provenance образа перед деплоем (`gh attestation verify`); сканирование образов на уязвимые системные пакеты; `keepAliveTimeout` и тайм-ауты проб под балансировщик хостинга.
+- Настоящий хостинг (вне этапа 9, решено работать локально): `keepAliveTimeout` и тайм-ауты проб под балансировщик, `TRUSTED_PROXY` под сеть платформы, домен и почтовый сервис с SPF/DKIM/DMARC — срез 9.4 описывает переход.
 - Политика паролей: сейчас от 8 символов без проверки по утёкшим базам; NIST SP 800-63B-4 для пароля как единственного фактора требует от 15. Решить вместе с UX регистрации (длина, проверка по k-anonymity API утечек) — [security.md](docs/architecture/security.md) §4, A07.
 - Переход на Node 26 — начало 2027. Вместе с ним — заменить `apps/api/src/shared/zoned-time.ts` на нативный `Temporal` (в Node 24 он только за флагом `--harmony-temporal`); тесты перевода времени остаются.
 - Переход на NestJS 12 и ESM в api — после поддержки NestJS 12 в nestjs-zod.

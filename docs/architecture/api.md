@@ -1,7 +1,7 @@
 # API: контракты, ошибки, валидация
 
 > Статус: утверждено 2026-11-09. Решение: [ADR-007](../adr/007-api-contracts-errors-validation.md).
-> Полная спецификация — `apps/api/openapi.json` (генерируется) и Swagger UI `/docs` (только вне production или за аутентификацией — решается на этапе 9).
+> Полная спецификация — `apps/api/openapi.json` (генерируется); Swagger UI не подключён ([ADR-019](../adr/019-production-like-deployment.md)).
 
 ## 1. Соглашения
 

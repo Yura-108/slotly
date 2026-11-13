@@ -228,6 +228,21 @@ jobs:
         run: |
           docker build -f apps/api/Dockerfile -t slotly-api:ci .
           docker build -f apps/web/Dockerfile -t slotly-web:ci .
+      # Known vulnerabilities in the images: OS packages of the base image and the npm packages
+      # inside. Fails on HIGH/CRITICAL that have a fix — the same rule as for npm (ADR-015):
+      # unfixable ones are reported, not blocking. Binary verified like gitleaks
+      - name: Vulnerability scan
+        env:
+          TRIVY_VERSION: 0.76.2
+          TRIVY_SHA256: bc0fc726e017b8927a62b2d3531d7a84ee01769daf5c99ed866dced54089fdbf
+        run: |
+          archive="trivy_${TRIVY_VERSION}_Linux-64bit.tar.gz"
+          curl -sSfL -o "$archive" "https://github.com/aquasecurity/trivy/releases/download/v${TRIVY_VERSION}/${archive}"
+          echo "${TRIVY_SHA256}  ${archive}" | sha256sum --check --strict
+          tar -xzf "$archive" trivy
+          for image in slotly-api:ci slotly-web:ci; do
+            ./trivy image --quiet --scanners vuln --severity HIGH,CRITICAL --ignore-unfixed --exit-code 1 "$image"
+          done
       # Packaging, not behaviour (e2e covers that): start, migrate, non-root, CSP, API proxy
       - name: Smoke test
         env:
