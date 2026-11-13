@@ -22,6 +22,10 @@ jobs:
     name: Lint, types, format, audit, secrets, API contract
     runs-on: ubuntu-latest
     timeout-minutes: 15
+    env:
+      # next.config.ts validates the web server environment; typegen and the build load it.
+      # Nothing listens there: no step talks to the API
+      API_INTERNAL_URL: http://127.0.0.1:4000
     steps:
       # Third-party actions are pinned to a commit SHA: a tag can be moved to other code
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
