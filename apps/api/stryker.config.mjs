@@ -25,7 +25,8 @@ const config = {
   htmlReporter: { fileName: 'reports/mutation/index.html' },
   // Every survivor is either killed by a test or marked equivalent in the code with a reason
   // (`// Stryker disable next-line …: why`), so a new one shows up instead of hiding in a margin
-  thresholds: { high: 100, low: 95, break: 95 },
+  // break 100: CI fails on any survivor (ADR-017)
+  thresholds: { high: 100, low: 100, break: 100 },
 };
 
 export default config;

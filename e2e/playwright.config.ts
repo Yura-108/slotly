@@ -9,7 +9,11 @@ export default defineConfig({
   testDir: './tests',
   fullyParallel: true,
   forbidOnly: ci,
+  // A retry tells a flaky test (failed, then passed) from a broken one and keeps the trace of
+  // the failed attempt. A flaky test still fails the run: it hides either a test that depends
+  // on timing or a real race in the app, and a green check would bury both (ADR-017)
   retries: ci ? 1 : 0,
+  failOnFlakyTests: ci,
   reporter: [['list'], ['html', { open: 'never' }]],
   timeout: 30_000,
   expect: { timeout: 10_000 },
