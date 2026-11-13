@@ -6,7 +6,7 @@
 
 
 # Pinned by digest, like actions by SHA: a tag can be moved. Dependabot (docker) updates it
-FROM node:24.21.0-alpine@sha256:ebfe2f90462722a7a4de65e91990e97fe0d401c70e0e762c5b53302f905ec1c1 AS build
+FROM node:24.22.3-alpine@sha256:116b800c3754b440ee0aa3ed2f20f5bf3d99a554bfd9adeea09ea8017f6e85f5 AS build
 # pnpm of the version in package.json "packageManager"; no git hooks in an image
 ENV COREPACK_ENABLE_DOWNLOAD_PROMPT=0 HUSKY=0
 RUN corepack enable
@@ -23,7 +23,11 @@ RUN pnpm --filter @slotly/api build
 RUN --mount=type=cache,id=pnpm-store,target=/root/.local/share/pnpm/store \
     pnpm --filter @slotly/api deploy --prod /out
 
-FROM node:24.21.0-alpine@sha256:ebfe2f90462722a7a4de65e91990e97fe0d401c70e0e762c5b53302f905ec1c1 AS runtime
+FROM node:24.22.3-alpine@sha256:116b800c3754b440ee0aa3ed2f20f5bf3d99a554bfd9adeea09ea8017f6e85f5 AS runtime
+# The app runs with node alone: package managers are attack surface and scanner findings
+# (npm bundles its own undici, tar…), not features. Removed, not just unused
+RUN rm -rf /usr/local/lib/node_modules/npm /usr/local/lib/node_modules/corepack /opt/yarn-* \
+    /usr/local/bin/npm /usr/local/bin/npx /usr/local/bin/corepack /usr/local/bin/yarn /usr/local/bin/yarnpkg
 ENV NODE_ENV=production \
     # A container accepts connections from outside it (ADR-016)
     HOST=0.0.0.0 \
