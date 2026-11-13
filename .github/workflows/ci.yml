@@ -1,0 +1,117 @@
+# Checks of every pull request and of main (ADR-017). Each job is a required status check
+# of the main ruleset; a red job blocks the merge.
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+# Read-only token: CI checks code and never writes to the repository. A pull request from
+# a fork runs on `pull_request` (not `pull_request_target`): no secrets, no write access
+permissions:
+  contents: read
+
+# A new push to the same pull request cancels the outdated run
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  checks:
+    name: Lint, types, format, audit, secrets, API contract
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      # Third-party actions are pinned to a commit SHA: a tag can be moved to other code
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: pnpm/action-setup@73e46992e05b19abd31f2f3c20e0e7370d762115 # v6.1.1
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+
+      - name: Lint (ESLint and module boundaries)
+        run: pnpm lint
+      - name: Types
+        run: pnpm typecheck
+      - name: Format
+        run: pnpm format:check
+      - name: Vulnerabilities in production dependencies
+        run: pnpm audit:prod
+      - name: Secrets in the working tree
+        run: pnpm secrets:check
+
+      # The committed contract must be what the code generates: a changed DTO or route
+      # without regenerated files would give the web client stale types
+      - name: API contract is up to date
+        env:
+          # Generation validates the configuration but never connects anywhere
+          DATABASE_URL: postgres://ci:ci@localhost:5432/ci
+          APP_ORIGIN: http://localhost:3000
+          SMTP_URL: smtp://localhost:1025
+          EMAIL_FROM: Slotly CI <ci@slotly.test>
+        run: |
+          pnpm --filter @slotly/api openapi:generate
+          pnpm --filter @slotly/web api:types
+          if ! git diff --exit-code -- apps/api/openapi.json apps/web/src/shared/api/schema.d.ts; then
+            echo "::error::openapi.json or schema.d.ts is out of date. Run: pnpm --filter @slotly/api openapi:generate && pnpm --filter @slotly/web api:types"
+            exit 1
+          fi
+
+  test:
+    name: Unit and integration tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: pnpm/action-setup@73e46992e05b19abd31f2f3c20e0e7370d762115 # v6.1.1
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      # Integration tests start PostgreSQL and Mailpit with testcontainers: the runner has Docker
+      - run: pnpm test
+
+  gitleaks:
+    name: Secrets in git history
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    env:
+      GITLEAKS_VERSION: 8.30.1
+      # From the release's checksums.txt: the binary is verified, not trusted by URL
+      GITLEAKS_SHA256: 551f6fc83ea457d62a0d98237cbad105af8d557003051f41f3e7ca7b3f2470eb
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          # The whole history: a secret deleted three commits ago is still in git
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Install gitleaks
+        run: |
+          archive="gitleaks_${GITLEAKS_VERSION}_linux_x64.tar.gz"
+          curl -sSfL -o "$archive" "https://github.com/gitleaks/gitleaks/releases/download/v${GITLEAKS_VERSION}/${archive}"
+          echo "${GITLEAKS_SHA256}  ${archive}" | sha256sum --check --strict
+          tar -xzf "$archive" gitleaks
+      # A green scan must mean "no secrets", not "the scanner finds nothing": it has to
+      # find a planted one first. The token is assembled at run time, so no literal of it
+      # is in this repository for the scan below (or secretlint) to report
+      - name: Canary - gitleaks finds a planted secret
+        run: |
+          canary="$RUNNER_TEMP/canary"
+          git init -q "$canary"
+          printf 'const token = "xox%s-123456789012-1234567890123-AbCdEfGhIjKlMnOpQrStUvWx";\n' b > "$canary/leak.ts"
+          git -C "$canary" add leak.ts
+          git -C "$canary" -c user.name=ci -c user.email=ci@example.test commit -qm canary
+          if ./gitleaks git --no-banner "$canary" > /dev/null 2>&1; then
+            echo "::error::gitleaks did not find the planted secret"
+            exit 1
+          fi
+      - name: Scan every commit
+        run: ./gitleaks git --redact --no-banner --verbose .
