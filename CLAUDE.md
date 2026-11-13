@@ -33,6 +33,7 @@
 ## Git
 
 - GitHub Flow: ветка от `main` → PR → squash merge. Заголовок PR — Conventional Commits (`feat(bookings): …`), проверяется в CI. Прямые коммиты в `main` не делаются.
+- CI (`.github/workflows/ci.yml`, [ADR-017](docs/adr/017-continuous-integration.md)) обязателен для слияния; сторонние actions — только по SHA коммита с версией в комментарии.
 - Не коммить и не пушь без запроса пользователя. pre-commit (husky + lint-staged) не обходить через `--no-verify`.
 
 ## Команды

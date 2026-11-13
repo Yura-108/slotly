@@ -19,7 +19,8 @@ concurrency:
 
 jobs:
   checks:
-    name: Lint, types, format, audit, secrets, API contract
+    # Job names are the required status checks of the main ruleset: keep them stable
+    name: checks
     runs-on: ubuntu-latest
     timeout-minutes: 15
     env:
@@ -67,7 +68,7 @@ jobs:
           fi
 
   test:
-    name: Unit and integration tests
+    name: test
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
@@ -84,7 +85,7 @@ jobs:
       - run: pnpm test
 
   gitleaks:
-    name: Secrets in git history
+    name: gitleaks
     runs-on: ubuntu-latest
     timeout-minutes: 5
     env:
