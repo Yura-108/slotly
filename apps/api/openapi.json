@@ -3,7 +3,7 @@
   "paths": {
     "/health/live": {
       "get": {
-        "operationId": "HealthController_liveStale",
+        "operationId": "HealthController_live",
         "parameters": [],
         "responses": {
           "200": {
