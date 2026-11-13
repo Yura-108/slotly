@@ -5,7 +5,7 @@
 
 
 # Pinned by digest, like actions by SHA: a tag can be moved. Dependabot (docker) updates it
-FROM node:24.21.0-alpine@sha256:ebfe2f90462722a7a4de65e91990e97fe0d401c70e0e762c5b53302f905ec1c1 AS build
+FROM node:24.22.2-alpine@sha256:a34ab6d7f6f4813f4d0c5469d74685604b962fbdbf5793a7bc7b4998ecb867c8 AS build
 ENV COREPACK_ENABLE_DOWNLOAD_PROMPT=0 HUSKY=0 NEXT_TELEMETRY_DISABLED=1
 RUN corepack enable
 WORKDIR /repo
@@ -18,7 +18,7 @@ COPY tsconfig.base.json ./
 # output: 'standalone' — server.js with only the files it uses (next.config.ts)
 RUN pnpm --filter @slotly/web build
 
-FROM node:24.21.0-alpine@sha256:ebfe2f90462722a7a4de65e91990e97fe0d401c70e0e762c5b53302f905ec1c1 AS runtime
+FROM node:24.22.2-alpine@sha256:a34ab6d7f6f4813f4d0c5469d74685604b962fbdbf5793a7bc7b4998ecb867c8 AS runtime
 ENV NODE_ENV=production \
     NEXT_TELEMETRY_DISABLED=1 \
     HOSTNAME=0.0.0.0 \
