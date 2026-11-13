@@ -29,7 +29,8 @@ export default defineConfig({
       name: 'api',
       command:
         'node scripts/reset-db.ts && pnpm --filter @slotly/api build && node ../apps/api/dist/main.js',
-      url: `${E2E.apiUrl}/health`,
+      // Ready, not just alive: the first test needs the database
+      url: `${E2E.apiUrl}/health/ready`,
       reuseExistingServer: reuse,
       timeout: 180_000,
       stdout: 'ignore',

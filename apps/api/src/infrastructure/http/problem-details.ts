@@ -10,6 +10,7 @@ import {
   NotFoundError,
   UnauthenticatedError,
 } from '../../shared/domain-error';
+import { isDatabaseUnavailable } from '../database/pg-errors';
 
 /** RFC 9457 Problem Details with our extensions `code`, `requestId`, `errors` (api.md §3). */
 export const problemDetailsSchema = z
@@ -36,9 +37,11 @@ const TITLES: Partial<Record<number, string>> = {
   403: 'Доступ запрещён',
   404: 'Не найдено',
   409: 'Конфликт',
+  413: 'Слишком большой запрос',
   422: 'Действие невозможно',
   429: 'Слишком много запросов',
   500: 'Внутренняя ошибка',
+  503: 'Сервис временно недоступен',
 };
 
 /** Codes for framework-level HTTP errors that do not come from our domain. */
@@ -76,6 +79,22 @@ const INTERNAL = (): ProblemDetails =>
   problem(500, 'INTERNAL_ERROR', 'Что-то пошло не так. Попробуйте ещё раз.');
 
 /**
+ * A client error raised by Express middleware before Nest sees the request (body-parser:
+ * body too large, unsupported charset). They come from http-errors, which marks errors
+ * that are safe to report with `expose`.
+ */
+function clientErrorStatus(exception: unknown): number | undefined {
+  if (!(exception instanceof Error)) return undefined;
+  const { status, expose } = exception as { status?: unknown; expose?: unknown };
+  return expose === true && typeof status === 'number' && status >= 400 && status < 500
+    ? status
+    : undefined;
+}
+
+const UNAVAILABLE = (): ProblemDetails =>
+  problem(503, 'SERVICE_UNAVAILABLE', 'Сервис временно недоступен. Попробуйте через минуту.');
+
+/**
  * Maps any thrown value to Problem Details. The only place where errors become HTTP
  * (CLAUDE.md rule 8). Pure, so every mapping is unit-tested without a server.
  * 5xx never carry internal messages: the cause goes to the logs, not to the client.
@@ -106,10 +125,23 @@ export function toProblemDetails(exception: unknown): ProblemDetails {
     return problem(429, 'RATE_LIMITED', 'Слишком много попыток. Подождите и попробуйте снова.');
   }
 
+  // The database is down or overloaded: a fast, retryable answer instead of 500 (ADR-016)
+  if (isDatabaseUnavailable(exception)) return UNAVAILABLE();
+
   if (exception instanceof HttpException) {
     const status = exception.getStatus();
+    if (status === 503) return UNAVAILABLE();
     if (status >= 500) return INTERNAL();
     return problem(status, HTTP_CODES[status] ?? 'HTTP_ERROR', 'Запрос не может быть выполнен.');
+  }
+
+  const clientStatus = clientErrorStatus(exception);
+  if (clientStatus !== undefined) {
+    return problem(
+      clientStatus,
+      HTTP_CODES[clientStatus] ?? 'HTTP_ERROR',
+      'Запрос не может быть выполнен.',
+    );
   }
 
   return INTERNAL();

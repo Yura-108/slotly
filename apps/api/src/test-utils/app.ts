@@ -18,7 +18,9 @@ export interface TestApp {
  * PostgreSQL. Only the configuration source is replaced: no mocks of our own code.
  * The outbox worker loop is off; tests deliver emails explicitly via OutboxProcessor.
  */
-export async function startTestApp(options: { smtpUrl?: string } = {}): Promise<TestApp> {
+export async function startTestApp(
+  options: { smtpUrl?: string; env?: Record<string, string> } = {},
+): Promise<TestApp> {
   const database = await startTestDatabase();
   const config = loadConfig({
     DATABASE_URL: database.connectionUri,
@@ -30,6 +32,7 @@ export async function startTestApp(options: { smtpUrl?: string } = {}): Promise<
     OUTBOX_POLL_INTERVAL_MS: '0',
     BOOKING_EXPIRY_INTERVAL_MS: '0',
     CLEANUP_INTERVAL_MS: '0',
+    ...options.env,
   });
 
   const moduleRef = await Test.createTestingModule({ imports: [AppModule] })

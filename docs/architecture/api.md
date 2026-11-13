@@ -16,32 +16,33 @@
 
 ## 2. Эндпоинты (MVP)
 
-| Метод и путь                                                          | Доступ                      | Назначение                                                     |
-| --------------------------------------------------------------------- | --------------------------- | -------------------------------------------------------------- |
-| `POST /auth/register`                                                 | гость                       | регистрация; одинаковый ответ для нового и существующего email |
-| `POST /auth/login`                                                    | гость                       | вход, установка cookie                                         |
-| `POST /auth/logout`                                                   | пользователь                | удаление сессии                                                |
-| `POST /auth/verify-email`                                             | гость                       | подтверждение по токену из письма                              |
-| `POST /auth/verify-email/resend`                                      | пользователь                | новая ссылка подтверждения (прежние гасятся)                   |
-| `POST /auth/password-reset/request`                                   | гость                       | одинаковый ответ для любого email                              |
-| `POST /auth/password-reset/confirm`                                   | гость                       | новый пароль по токену; удаляет все сессии                     |
-| `GET /me`, `PATCH /me`                                                | пользователь                | профиль, часовой пояс                                          |
-| `GET /me/specialist-profile`                                          | пользователь                | свой профиль специалиста; 404, если не включён                 |
-| `POST /me/specialist-profile`, `PATCH /me/specialist-profile`         | подтверждённый email        | включить/изменить профиль специалиста и настройки              |
-| `GET /me/services`, `POST /me/services`                               | специалист                  | услуги, включая архивные                                       |
-| `PATCH /me/services/{id}`, `POST /me/services/{id}/archive`           | специалист                  | изменить / архивировать                                        |
-| `GET /me/availability`, `PUT /me/availability`                        | специалист                  | недельное расписание целиком (атомарная замена)                |
-| `GET /me/days-off`, `POST /me/days-off`, `DELETE /me/days-off/{id}`   | специалист                  | выходные                                                       |
-| `GET /me/bookings?as=client\|specialist&scope=upcoming\|past&status=` | пользователь                | списки броней                                                  |
-| `GET /specialists/{slug}`                                             | все                         | публичный профиль                                              |
-| `GET /specialists/{slug}/services`                                    | все                         | активные услуги                                                |
-| `GET /specialists/{slug}/slots?serviceId=&from=&to=`                  | все                         | свободные слоты; `[from, to)` — моменты, ≤ 31 дня              |
-| `POST /bookings`                                                      | подтверждённый email        | создать бронь `{ serviceId, startAt }`                         |
-| `GET /bookings/{id}`                                                  | клиент или специалист брони | детали                                                         |
-| `POST /bookings/{id}/confirm`                                         | специалист брони            | `pending → confirmed`                                          |
-| `POST /bookings/{id}/reject`                                          | специалист брони            | `pending → rejected`, `{ reason? }`                            |
-| `POST /bookings/{id}/cancel`                                          | клиент или специалист брони | `→ cancelled`, `{ reason? }`                                   |
-| `GET /health`                                                         | все                         | health check                                                   |
+| Метод и путь                                                          | Доступ                      | Назначение                                                                             |
+| --------------------------------------------------------------------- | --------------------------- | -------------------------------------------------------------------------------------- |
+| `POST /auth/register`                                                 | гость                       | регистрация; одинаковый ответ для нового и существующего email                         |
+| `POST /auth/login`                                                    | гость                       | вход, установка cookie                                                                 |
+| `POST /auth/logout`                                                   | пользователь                | удаление сессии                                                                        |
+| `POST /auth/verify-email`                                             | гость                       | подтверждение по токену из письма                                                      |
+| `POST /auth/verify-email/resend`                                      | пользователь                | новая ссылка подтверждения (прежние гасятся)                                           |
+| `POST /auth/password-reset/request`                                   | гость                       | одинаковый ответ для любого email                                                      |
+| `POST /auth/password-reset/confirm`                                   | гость                       | новый пароль по токену; удаляет все сессии                                             |
+| `GET /me`, `PATCH /me`                                                | пользователь                | профиль, часовой пояс                                                                  |
+| `GET /me/specialist-profile`                                          | пользователь                | свой профиль специалиста; 404, если не включён                                         |
+| `POST /me/specialist-profile`, `PATCH /me/specialist-profile`         | подтверждённый email        | включить/изменить профиль специалиста и настройки                                      |
+| `GET /me/services`, `POST /me/services`                               | специалист                  | услуги, включая архивные                                                               |
+| `PATCH /me/services/{id}`, `POST /me/services/{id}/archive`           | специалист                  | изменить / архивировать                                                                |
+| `GET /me/availability`, `PUT /me/availability`                        | специалист                  | недельное расписание целиком (атомарная замена)                                        |
+| `GET /me/days-off`, `POST /me/days-off`, `DELETE /me/days-off/{id}`   | специалист                  | выходные                                                                               |
+| `GET /me/bookings?as=client\|specialist&scope=upcoming\|past&status=` | пользователь                | списки броней                                                                          |
+| `GET /specialists/{slug}`                                             | все                         | публичный профиль                                                                      |
+| `GET /specialists/{slug}/services`                                    | все                         | активные услуги                                                                        |
+| `GET /specialists/{slug}/slots?serviceId=&from=&to=`                  | все                         | свободные слоты; `[from, to)` — моменты, ≤ 31 дня                                      |
+| `POST /bookings`                                                      | подтверждённый email        | создать бронь `{ serviceId, startAt }`                                                 |
+| `GET /bookings/{id}`                                                  | клиент или специалист брони | детали                                                                                 |
+| `POST /bookings/{id}/confirm`                                         | специалист брони            | `pending → confirmed`                                                                  |
+| `POST /bookings/{id}/reject`                                          | специалист брони            | `pending → rejected`, `{ reason? }`                                                    |
+| `POST /bookings/{id}/cancel`                                          | клиент или специалист брони | `→ cancelled`, `{ reason? }`                                                           |
+| `GET /health/live`                                                    | все                         | liveness: процесс жив, без БД ([ADR-016](../adr/016-reliability-limits-and-health.md)) |
+| `GET /health/ready`                                                   | все                         | readiness: БД отвечает, иначе `503`                                                    |
 
 ## 3. Ошибки — RFC 9457 Problem Details
 
@@ -77,6 +78,8 @@
 | `ConflictError`        | 409  | `BOOKING_SLOT_TAKEN`, `BOOKING_STATUS_CHANGED`, `SLUG_TAKEN`                                                                                       |
 | `BusinessRuleError`    | 422  | `CANCEL_DEADLINE_PASSED`, `PENDING_LIMIT_REACHED`, `SLOT_NOT_AVAILABLE`, `CANNOT_BOOK_SELF`, `TOKEN_INVALID_OR_EXPIRED`, `BOOKING_ALREADY_STARTED` |
 | rate limit             | 429  | `RATE_LIMITED` (+ `Retry-After`)                                                                                                                   |
+| ошибка middleware      | 4xx  | `PAYLOAD_TOO_LARGE` (тело больше 32 КБ), `UNSUPPORTED_MEDIA_TYPE`                                                                                  |
+| БД недоступна          | 503  | `SERVICE_UNAVAILABLE` (+ `Retry-After`) — [ADR-016](../adr/016-reliability-limits-and-health.md)                                                   |
 | прочее                 | 500  | `INTERNAL_ERROR`                                                                                                                                   |
 
 Реализация (`apps/api/src/infrastructure/http/problem-details.ts`):

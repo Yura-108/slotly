@@ -2,6 +2,7 @@ import type { NestExpressApplication } from '@nestjs/platform-express';
 import cookieParser from 'cookie-parser';
 import { z } from 'zod';
 import { AppConfig } from './infrastructure/config/config.schema';
+import { applyHttpLimits } from './infrastructure/http/http-limits';
 import { securityHeaders } from './infrastructure/http/security-headers';
 
 /**
@@ -21,4 +22,5 @@ export function configureApp(app: NestExpressApplication): void {
   // Before any route, so errors, 404s and rate-limit responses carry them too
   app.use(securityHeaders);
   app.use(cookieParser());
+  applyHttpLimits(app);
 }

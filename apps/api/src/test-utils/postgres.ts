@@ -10,6 +10,8 @@ export interface TestDatabase {
   db: Database;
   /** For starting the whole app against the same database (e2e tests). */
   connectionUri: string;
+  /** Docker id of the container: outage tests pause it to freeze the server. */
+  containerId: string;
   stop: () => Promise<void>;
 }
 
@@ -24,12 +26,15 @@ export async function startTestDatabase(): Promise<TestDatabase> {
   ).start();
   // Enough connections for concurrency tests that open many transactions at once
   const pool = new Pool({ connectionString: container.getConnectionUri(), max: 30 });
+  // Outage tests break connections on purpose; the test pool must survive that too
+  pool.on('error', () => undefined);
   const db = drizzle(pool, { schema });
   await migrate(db, { migrationsFolder: join(__dirname, '../../drizzle') });
 
   return {
     db,
     connectionUri: container.getConnectionUri(),
+    containerId: container.getId(),
     stop: async () => {
       await pool.end();
       await container.stop();

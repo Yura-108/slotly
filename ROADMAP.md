@@ -24,7 +24,9 @@
 1. ✅ Модель угроз [security.md](docs/architecture/security.md) по OWASP Top 10:2025; тест матрицы доступа по настоящей таблице маршрутов (`401` вне списка публичных, точный список публичных, `403` без `Origin`).
 2. ✅ Заголовки безопасности и CSP с nonce на каждый запрос ([ADR-014](docs/adr/014-security-headers-csp.md)), HSTS в production, `Cache-Control: no-store` в API; браузерные e2e падают на любом нарушении CSP.
 3. ✅ Зависимости и секреты ([ADR-015](docs/adr/015-dependencies-and-secrets.md)): `multer` исправлен обновлением Nest, `qs` — точечным `overrides`, четыре dev-уведомления приняты с причиной; `pnpm audit:prod`; secretlint в pre-commit, история проверена; Dependabot.
-4. Надёжность: тайм-ауты HTTP-сервера, лимит тела, быстрый `503` без БД, liveness/readiness.
+4. ✅ Надёжность ([ADR-016](docs/adr/016-reliability-limits-and-health.md)): тайм-ауты пула и `statement_timeout`, `503` при недоступной БД, процесс переживает перезапуск БД; тайм-ауты HTTP-сервера, лимит тела; `/health/live` и `/health/ready`; API слушает `127.0.0.1`.
+
+Этап 7 завершён 2026-11-13. Следующий — этап 8: CI/CD.
 
 Этап 6 — тестирование и качество (план утверждён 2026-11-12), срез на PR:
 

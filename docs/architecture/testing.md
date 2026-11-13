@@ -23,6 +23,10 @@
 
 `access-matrix.e2e.test.ts` в API проходит по всем маршрутам запущенного приложения: без сессии — `401`, кроме явного списка публичных; список публичных совпадает с ответами в точности; изменяющий запрос без нашего `Origin` — `403`. Подробности и почему список записан руками — [security.md](security.md) §5.
 
+### Поведение при сбоях
+
+`reliability.e2e.test.ts` ломает настоящую PostgreSQL: закрывает соединения API (`pg_terminate_backend` — как при перезапуске сервера) и замораживает контейнер (`docker pause`). Проверяется, что процесс жив, ответ — быстрый `503`, liveness — `200`, а после возвращения базы readiness сам становится `200`. Там же — медленный клиент (`408` через `headersTimeout`) и тело больше лимита (`413`). Каждая защита проверена мутацией ([ADR-016](../adr/016-reliability-limits-and-health.md)).
+
 ## 4. Браузерные e2e (`e2e/`)
 
 Запуск: `pnpm test:e2e` (нужны `docker compose up -d --wait` и один раз `pnpm --filter @slotly/e2e exec playwright install chromium`). Отчёт: `pnpm test:e2e:report` (Playwright установлен только в пакете `e2e/`, поэтому его подсказка `pnpm exec playwright show-report` из корня не работает).

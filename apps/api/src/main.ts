@@ -14,7 +14,8 @@ async function bootstrap(): Promise<void> {
   app.enableShutdownHooks();
   configureApp(app);
 
-  await app.listen(app.get(AppConfig).port);
+  const { port, host } = app.get(AppConfig);
+  await app.listen(port, host);
 }
 
 void bootstrap();

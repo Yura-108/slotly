@@ -21,3 +21,4 @@ ADR фиксирует значимое архитектурное решени�
 | [013](013-testing-strategy.md)                  | Тестирование: уровни; браузерные e2e на Playwright против изолированного стека             | Принято | 2026-11-12 |
 | [014](014-security-headers-csp.md)              | Заголовки безопасности; CSP с nonce на каждый запрос, `no-store` в API                     | Принято | 2026-11-12 |
 | [015](015-dependencies-and-secrets.md)          | Уязвимые зависимости: правило разбора, `audit --prod`, Dependabot; secretlint в pre-commit | Принято | 2026-11-12 |
+| [016](016-reliability-limits-and-health.md)     | Тайм-ауты базы и HTTP, лимит тела, `503` без базы, liveness/readiness, `HOST`              | Принято | 2026-11-13 |
