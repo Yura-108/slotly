@@ -58,8 +58,8 @@ export default defineConfig({
     },
     {
       name: 'web',
-      // Rewrites are resolved at build time (ADR-005): build against the e2e API, into its
-      // own directory so the dev server's .next is left alone
+      // A production build into its own directory, so the dev server's .next is left alone;
+      // the API address is read when the server starts (ADR-018)
       command: 'pnpm exec next build && pnpm exec next start --port 3100',
       cwd: '../apps/web',
       url: E2E.webUrl,

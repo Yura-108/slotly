@@ -13,7 +13,7 @@
 | 5   | Реализация vertical slices                                          | ✅     | 8 срезов, PR #1–#8                                                                                               |
 | 6   | Тестирование и качество                                             | ✅     | [testing.md](docs/architecture/testing.md), [ADR-013](docs/adr/013-testing-strategy.md)                          |
 | 7   | Безопасность и надёжность                                           | ✅     | [security.md](docs/architecture/security.md)                                                                     |
-| 8   | CI/CD                                                               | 🔄     | [ADR-017](docs/adr/017-continuous-integration.md)                                                                |
+| 8   | CI/CD                                                               | ✅     | [ADR-017](docs/adr/017-continuous-integration.md), [ADR-018](docs/adr/018-container-images.md)                   |
 | 9   | Production и эксплуатация                                           | ⏳     | —                                                                                                                |
 | 10  | Ретроспектива                                                       | ⏳     | —                                                                                                                |
 
@@ -23,7 +23,9 @@
 
 1. ✅ CI на каждом PR и `main` ([ADR-017](docs/adr/017-continuous-integration.md)): линтер, типы, формат, `audit:prod`, секреты, дрейф контракта API, тесты, gitleaks по истории с канарейкой; actions по SHA; ruleset `main`.
 2. ✅ Браузерные e2e в CI (артефакты трасс, нестабильный тест — провал); покрытие домена; Stryker с порогом 100% при изменении домена и раз в неделю.
-3. Docker-образы api и web: многоэтапная сборка, не root, smoke-проверка в CI, публикация в GHCR с provenance на `main`.
+3. ✅ Docker-образы api и web ([ADR-018](docs/adr/018-container-images.md)): адрес API при запуске (`proxy.ts`), многоэтапная сборка, не root, миграции отдельным шагом, smoke-проверка в CI, публикация проверенных образов в GHCR с provenance на `main`.
+
+Этап 8 завершён 2026-11-13. Следующий — этап 9: production и эксплуатация.
 
 Этап 7 — безопасность и надёжность (план утверждён 2026-11-12), срез на PR:
 
@@ -69,6 +71,7 @@
 
 ## Отложенные задачи
 
+- Этап 9: проверка provenance образа перед деплоем (`gh attestation verify`); сканирование образов на уязвимые системные пакеты; `keepAliveTimeout` и тайм-ауты проб под балансировщик хостинга.
 - Политика паролей: сейчас от 8 символов без проверки по утёкшим базам; NIST SP 800-63B-4 для пароля как единственного фактора требует от 15. Решить вместе с UX регистрации (длина, проверка по k-anonymity API утечек) — [security.md](docs/architecture/security.md) §4, A07.
 - Переход на Node 26 — начало 2027. Вместе с ним — заменить `apps/api/src/shared/zoned-time.ts` на нативный `Temporal` (в Node 24 он только за флагом `--harmony-temporal`); тесты перевода времени остаются.
 - Переход на NestJS 12 и ESM в api — после поддержки NestJS 12 в nestjs-zod.
@@ -76,7 +79,6 @@
 - ESLint 10 в `apps/web` — после поддержки в `eslint-config-next` (сейчас её плагины `eslint-plugin-react`, `-import`, `-jsx-a11y` объявляют ESLint до 9; web на ESLint 9.39, api — на 10).
 - Этап 9: выбрать почтовый сервис (SMTP), настроить SPF/DKIM/DMARC домена; алерт на сообщения outbox в статусе `failed`.
 - Этап 9: `TRUSTED_PROXY` под сеть хостинга (сейчас `loopback`); Swagger UI `/docs` — только вне production или за аутентификацией.
-- Этап 9: адрес API в rewrites фиксируется при `next build` — выбрать сборку на окружение или `proxy.ts` с адресом во время выполнения.
 
 Архитектура (этап 3) — завершена 2026-11-09:
 

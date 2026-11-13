@@ -214,3 +214,85 @@ jobs:
           name: mutation-report
           path: apps/api/reports/mutation/
           retention-days: 14
+
+  images:
+    name: images
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      # The images are built from the repository alone: no secrets, no registry access
+      - name: Build
+        run: |
+          docker build -f apps/api/Dockerfile -t slotly-api:ci .
+          docker build -f apps/web/Dockerfile -t slotly-web:ci .
+      # Packaging, not behaviour (e2e covers that): start, migrate, non-root, CSP, API proxy
+      - name: Smoke test
+        env:
+          API_IMAGE: slotly-api:ci
+          WEB_IMAGE: slotly-web:ci
+        run: scripts/smoke-images.sh
+      # The publish job pushes exactly these bytes: a rebuild could differ from what was tested
+      - name: Save the tested images
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        run: docker save slotly-api:ci slotly-web:ci | gzip > images.tar.gz
+      - if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: images
+          path: images.tar.gz
+          retention-days: 1
+
+  # The only job with write access, and only for main: pushes the tested images to GHCR
+  # and attests where they were built (SLSA provenance)
+  publish:
+    name: publish
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    needs: [checks, test, e2e, mutation, gitleaks, images]
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+      packages: write
+      id-token: write
+      attestations: write
+      artifact-metadata: write
+    steps:
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          name: images
+      - name: Push
+        id: push
+        env:
+          TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          ACTOR: ${{ github.actor }}
+          OWNER: ${{ github.repository_owner }}
+          SHA: ${{ github.sha }}
+        run: |
+          gunzip -c images.tar.gz | docker load
+          echo "$TOKEN" | docker login ghcr.io -u "$ACTOR" --password-stdin
+          registry="ghcr.io/${OWNER,,}"
+          for app in api web; do
+            image="$registry/slotly-$app"
+            # Tag by commit: a deployment names exactly what it runs; `main` follows the branch
+            docker tag "slotly-$app:ci" "$image:sha-$SHA"
+            docker tag "slotly-$app:ci" "$image:main"
+            docker push -q "$image:sha-$SHA"
+            docker push -q "$image:main"
+            digest=$(docker inspect --format '{{index .RepoDigests 0}}' "$image:sha-$SHA" | cut -d@ -f2)
+            echo "${app}_name=$image" >> "$GITHUB_OUTPUT"
+            echo "${app}_digest=$digest" >> "$GITHUB_OUTPUT"
+            echo "$image@$digest" >> "$GITHUB_STEP_SUMMARY"
+          done
+      - uses: actions/attest@1e69f48acb82d1966a394da916b4c1698aa569d6 # v4.2.2
+        with:
+          subject-name: ${{ steps.push.outputs.api_name }}
+          subject-digest: ${{ steps.push.outputs.api_digest }}
+          push-to-registry: true
+      - uses: actions/attest@1e69f48acb82d1966a394da916b4c1698aa569d6 # v4.2.2
+        with:
+          subject-name: ${{ steps.push.outputs.web_name }}
+          subject-digest: ${{ steps.push.outputs.web_digest }}
+          push-to-registry: true
