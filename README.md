@@ -74,6 +74,17 @@ pnpm --filter @slotly/web dev       # http://localhost:3000, /api/* прокси
 | `pnpm --filter @slotly/api openapi:generate` | обновить контракт `apps/api/openapi.json`                                                                                                 |
 | `pnpm --filter @slotly/web api:types`        | типы клиента web из `openapi.json`                                                                                                        |
 
+## Production-подобная среда
+
+Опубликованные в GHCR образы за HTTPS-прокси, как на сервере ([ADR-019](docs/adr/019-production-like-deployment.md)):
+
+```bash
+cp deploy/.env.example deploy/.env   # задать пароли
+deploy/deploy.sh <sha коммита main>  # проверка provenance, миграции, запуск, smoke
+```
+
+Сайт — https://localhost:8443 (сертификат локального центра Caddy: `deploy/caddy-root.crt`), письма — http://127.0.0.1:8026. Откат — `deploy.sh` с предыдущим SHA из `deploy/releases.log`.
+
 ## Процесс разработки
 
 - GitHub Flow: ветка от `main` → Pull Request → squash merge. Заголовок PR — в формате [Conventional Commits](https://www.conventionalcommits.org/) (`feat(bookings): …`), его проверяет CI.

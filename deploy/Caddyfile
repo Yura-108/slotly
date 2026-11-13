@@ -1,0 +1,22 @@
+# The edge of the production-like stack (ADR-019): HTTPS, then the web server.
+{
+	# No domain (stage 9 runs locally): certificates from Caddy's own CA, not Let's Encrypt.
+	# Trust deploy/caddy-root.crt (deploy.sh exports it) to open the site without a warning
+	local_certs
+	# The admin API could reload this config; nothing here needs it
+	admin off
+}
+
+localhost {
+	encode zstd gzip
+
+	# Caddy does not trust X-Forwarded-For from the client: it sets the header to the address
+	# of the connection, so the API's per-IP limits see the real client (TRUSTED_PROXY)
+	reverse_proxy web:3000 {
+		transport http {
+			# An idle upstream connection is closed by the client first: Node in web closes
+			# after 5 s, so a reused connection is never one the server is closing (no 502)
+			keepalive 4s
+		}
+	}
+}

@@ -47,3 +47,8 @@ e2e/blob-report/
 # Mutation testing (Stryker)
 reports/
 .stryker-tmp/
+
+# Production-like stack (deploy/): release history and the exported local CA certificate.
+# deploy/.env and deploy/.env.release are covered by the .env rules above
+deploy/releases.log
+deploy/caddy-root.crt

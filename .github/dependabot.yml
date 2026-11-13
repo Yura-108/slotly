@@ -35,7 +35,10 @@ updates:
       include: scope
 
   - package-ecosystem: docker-compose
-    directory: '/'
+    # compose.yaml (development) and deploy/compose.yaml (production-like stack, ADR-019)
+    directories:
+      - '/'
+      - '/deploy'
     schedule:
       interval: weekly
       day: monday
