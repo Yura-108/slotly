@@ -9,7 +9,7 @@
     "typecheck": "next typegen && tsc --noEmit",
     "lint": "eslint . && pnpm run lint:deps",
     "lint:deps": "depcruise src next.config.ts --config .dependency-cruiser.cjs",
-    "api:types": "openapi-typescript ../api/openapi.json -o src/shared/api/schema.d.ts",
+    "api:types": "openapi-typescript ../api/openapi.json -o src/shared/api/schema.d.ts && prettier --write src/shared/api/schema.d.ts",
     "test": "vitest run"
   },
   "dependencies": {

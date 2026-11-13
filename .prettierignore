@@ -6,8 +6,8 @@ e2e/test-results/
 e2e/playwright-report/
 **/coverage/
 **/drizzle/meta/
-# Generated contract (pnpm --filter @slotly/api openapi:generate)
+# Generated contract, written by JSON.stringify (pnpm --filter @slotly/api openapi:generate).
+# schema.d.ts is formatted by its generator (api:types), so it is checked like any file
 apps/api/openapi.json
-apps/web/src/shared/api/schema.d.ts
 **/reports/
 **/.stryker-tmp/

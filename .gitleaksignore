@@ -1,0 +1,5 @@
+# Reviewed false positives of the gitleaks history scan (ci.yml, ADR-017). One fingerprint
+# per finding — commit:file:rule:line — so the rule keeps working everywhere else.
+#
+# A test password for the Argon2 hasher, not a credential (password-hasher.test.ts)
+f2d214d143646e6d2cfbe578351514f00ce4bbf6:apps/api/src/modules/auth/password-hasher.test.ts:generic-api-key:20

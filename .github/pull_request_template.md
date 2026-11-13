@@ -9,7 +9,7 @@
 
 ## Как проверено
 
-- [ ] `pnpm lint` · `pnpm typecheck` · `pnpm test` · `pnpm format:check`
+- [ ] CI зелёный (`checks`, `test`, `gitleaks`); браузерные e2e — `pnpm test:e2e`, если менялся UI или поток
 - [ ] Ручная проверка (что именно):
 
 ## Чек-лист
