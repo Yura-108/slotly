@@ -16,6 +16,20 @@ const serverEnvSchema = z.object({
 
 export type ServerEnv = z.infer<typeof serverEnvSchema>;
 
+/**
+ * What next.config.ts needs while building. The API address is not here: it is read when
+ * the server starts (proxy.ts), so one build runs in every environment (ADR-018).
+ */
+const buildEnvSchema = serverEnvSchema.pick({ NEXT_DIST_DIR: true, NODE_ENV: true });
+
+export function loadBuildEnv(env: Record<string, string | undefined> = process.env) {
+  const result = buildEnvSchema.safeParse(env);
+  if (!result.success) {
+    throw new Error(`Invalid apps/web build environment:\n${z.prettifyError(result.error)}`);
+  }
+  return result.data;
+}
+
 export function loadServerEnv(env: Record<string, string | undefined> = process.env): ServerEnv {
   const result = serverEnvSchema.safeParse(env);
   if (!result.success) {

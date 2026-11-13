@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { ConfigValidationError, loadConfig } from './config.schema';
+import { ConfigValidationError, loadConfig, loadMigrationConfig } from './config.schema';
 
 const validEnv = {
   DATABASE_URL: 'postgres://u:p@localhost:5433/db',
@@ -70,5 +70,14 @@ describe('loadConfig', () => {
     expect(() => loadConfig({ ...validEnv, DATABASE_URL: 'mysql://u:p@localhost/db' })).toThrow(
       /DATABASE_URL/,
     );
+  });
+});
+
+describe('loadMigrationConfig', () => {
+  it('needs only DATABASE_URL: the migration step has no SMTP or cookie settings', () => {
+    expect(loadMigrationConfig({ DATABASE_URL: validEnv.DATABASE_URL })).toEqual({
+      databaseUrl: validEnv.DATABASE_URL,
+    });
+    expect(() => loadMigrationConfig({})).toThrow(ConfigValidationError);
   });
 });

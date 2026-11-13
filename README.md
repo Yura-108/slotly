@@ -79,5 +79,6 @@ pnpm --filter @slotly/web dev       # http://localhost:3000, /api/* прокси
 - GitHub Flow: ветка от `main` → Pull Request → squash merge. Заголовок PR — в формате [Conventional Commits](https://www.conventionalcommits.org/) (`feat(bookings): …`), его проверяет CI.
 - CI ([ADR-017](docs/adr/017-continuous-integration.md)) на каждом PR: линтер, типы, формат, аудит, секреты, актуальность контракта API, тесты, gitleaks по истории. В `main` — только через PR с зелёными проверками.
 - `pnpm install` ставит pre-commit hook: Prettier и ESLint для staged-файлов, secretlint — поиск секретов ([ADR-015](docs/adr/015-dependencies-and-secrets.md)).
+- Production-образы локально: `docker build -f apps/api/Dockerfile -t slotly-api:local .` (и `apps/web`), затем `scripts/smoke-images.sh` — запуск с `compose.images.yaml` на http://localhost:3300 ([ADR-018](docs/adr/018-container-images.md)).
 - `pnpm audit:prod` — уязвимости production-зависимостей; `pnpm secrets:check` — секреты во всём рабочем дереве.
 - `pnpm lint` проверяет и границы модулей (dependency-cruiser): см. [ADR-011](docs/adr/011-architecture-checks-and-git-hooks.md).

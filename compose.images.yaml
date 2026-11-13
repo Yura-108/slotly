@@ -1,0 +1,43 @@
+# The production images on top of the local infrastructure (ADR-018): the smoke test in CI,
+# and a way to run exactly what will be deployed. Used together with compose.yaml:
+#   docker compose -f compose.yaml -f compose.images.yaml up -d --wait
+# Images default to local builds (docker build … -t slotly-api:local); CI passes its own tags.
+services:
+  # A release step, not part of the app start: applies migrations and exits
+  migrate:
+    image: ${API_IMAGE:-slotly-api:local}
+    command: ['node', 'dist/migrate.js']
+    environment:
+      DATABASE_URL: postgres://slotly:slotly@postgres:5432/slotly
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: 'no'
+
+  api:
+    image: ${API_IMAGE:-slotly-api:local}
+    environment:
+      DATABASE_URL: postgres://slotly:slotly@postgres:5432/slotly
+      APP_ORIGIN: http://localhost:3300
+      SMTP_URL: smtp://mailpit:1025
+      EMAIL_FROM: Slotly <no-reply@slotly.local>
+      # The web container reaches the API over the private compose network
+      TRUSTED_PROXY: uniquelocal
+      LOG_LEVEL: warn
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+      mailpit:
+        condition: service_healthy
+    # Not published: only the web server talks to the API
+
+  web:
+    image: ${WEB_IMAGE:-slotly-web:local}
+    environment:
+      # Read at start, not baked into the build: the same image in every environment
+      API_INTERNAL_URL: http://api:4000
+    ports:
+      - '3300:3000'
+    depends_on:
+      api:
+        condition: service_healthy

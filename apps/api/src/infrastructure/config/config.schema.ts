@@ -119,3 +119,19 @@ export function loadEnvFileIfPresent(path = '.env'): void {
     process.loadEnvFile(path);
   }
 }
+
+/**
+ * Configuration of the migration command (src/migrate.ts): only the database. It runs as a
+ * separate step before the app, so it must not require the app's SMTP or cookie settings.
+ */
+export function loadMigrationConfig(env: Record<string, string | undefined> = process.env): {
+  databaseUrl: string;
+} {
+  const parsed = envSchema.pick({ DATABASE_URL: true }).safeParse(env);
+  if (!parsed.success) {
+    throw new ConfigValidationError(
+      `Invalid environment configuration:\n${z.prettifyError(parsed.error)}`,
+    );
+  }
+  return { databaseUrl: parsed.data.DATABASE_URL };
+}

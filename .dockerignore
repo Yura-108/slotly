@@ -1,0 +1,20 @@
+# The build context is the repository root (the images need the workspace and the lockfile).
+# Nothing local or generated: dependencies and builds are made inside the image
+**/node_modules
+**/dist
+**/.next
+**/.next-e2e
+**/coverage
+**/reports
+**/.stryker-tmp
+e2e/test-results
+e2e/playwright-report
+.git
+.github
+.claude
+.idea
+.concept-loom
+# Secrets never reach the image, not even the build stage
+**/.env
+**/.env.*
+!**/.env.example

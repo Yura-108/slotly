@@ -48,6 +48,26 @@ updates:
     commit-message:
       prefix: build
 
+  # Base images of apps/api and apps/web, pinned by digest (ADR-018)
+  - package-ecosystem: docker
+    directories:
+      - '/apps/api'
+      - '/apps/web'
+    schedule:
+      interval: weekly
+      day: monday
+    cooldown:
+      default-days: 3
+    # Node majors follow the project's Node version (ROADMAP), not a weekly update
+    ignore:
+      - dependency-name: '*'
+        update-types: ['version-update:semver-major']
+    groups:
+      node-image:
+        patterns: ['*']
+    commit-message:
+      prefix: build
+
   - package-ecosystem: github-actions
     directory: '/'
     schedule:

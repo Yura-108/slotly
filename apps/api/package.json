@@ -1,6 +1,10 @@
 {
   "name": "@slotly/api",
   "private": true,
+  "files": [
+    "dist",
+    "drizzle"
+  ],
   "scripts": {
     "dev": "nest start --watch",
     "build": "nest build",
@@ -15,7 +19,8 @@
     "openapi:generate": "nest build && node dist/generate-openapi.js",
     "test:unit": "vitest run --config vitest.unit.config.mts",
     "test:coverage": "vitest run --config vitest.unit.config.mts --coverage",
-    "test:mutation": "stryker run"
+    "test:mutation": "stryker run",
+    "db:migrate:deploy": "node dist/migrate.js"
   },
   "dependencies": {
     "@nestjs/common": "11.2.9",
