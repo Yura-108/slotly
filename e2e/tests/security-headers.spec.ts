@@ -4,8 +4,6 @@ const nonceOf = (csp: string | undefined) => /'nonce-([^']+)'/.exec(csp ?? '')?.
 
 test.describe('security headers and Content-Security-Policy (ADR-014)', () => {
   test('every page response has its own nonce, and our scripts carry it', async ({ page }) => {
-    // eslint-disable-next-line playwright/no-conditional-in-test -- CI probe: fails on the first attempt only, reverted next
-    if (test.info().retry === 0) throw new Error('CI probe: flaky');
     const first = await page.goto('/login');
     const second = await page.goto('/login');
     const headers = first!.headers();
@@ -62,7 +60,7 @@ test.describe('security headers and Content-Security-Policy (ADR-014)', () => {
     const res = await request.get('/api/health/live');
     expect(res.ok()).toBe(true);
     const headers = res.headers();
-    expect(headers['cache-control']).toBe('no-cache'); // CI probe: broken test
+    expect(headers['cache-control']).toBe('no-store');
     expect(headers['referrer-policy']).toBe('no-referrer');
     expect(headers['content-security-policy']).toBe("default-src 'none'; frame-ancestors 'none'");
   });
