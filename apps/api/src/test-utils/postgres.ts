@@ -4,6 +4,7 @@ import { drizzle } from 'drizzle-orm/node-postgres';
 import { migrate } from 'drizzle-orm/node-postgres/migrator';
 import { Pool } from 'pg';
 import type { Database } from '../infrastructure/database/database.module';
+import { composeImage } from './compose-image';
 import * as schema from '../infrastructure/database/schema';
 
 export interface TestDatabase {
@@ -22,7 +23,7 @@ export interface TestDatabase {
  */
 export async function startTestDatabase(): Promise<TestDatabase> {
   const container: StartedPostgreSqlContainer = await new PostgreSqlContainer(
-    'postgres:18.6-alpine',
+    composeImage('postgres'),
   ).start();
   // Enough connections for concurrency tests that open many transactions at once
   const pool = new Pool({ connectionString: container.getConnectionUri(), max: 30 });

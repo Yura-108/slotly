@@ -1,4 +1,5 @@
 import { GenericContainer, type StartedTestContainer, Wait } from 'testcontainers';
+import { composeImage } from './compose-image';
 
 const SMTP_PORT = 1025;
 const API_PORT = 8025;
@@ -29,7 +30,7 @@ export interface TestMailbox {
  * through Mailpit's HTTP API — no fake of our mail code.
  */
 export async function startMailpit(): Promise<TestMailbox> {
-  const container: StartedTestContainer = await new GenericContainer('axllent/mailpit:v1.33.0')
+  const container: StartedTestContainer = await new GenericContainer(composeImage('mailpit'))
     .withExposedPorts(SMTP_PORT, API_PORT)
     // Mailpit resolves the client IP before the SMTP greeting; inside Docker Desktop that
     // lookup can stall for seconds and nodemailer gives up waiting for the greeting
