@@ -13,13 +13,13 @@
     "test": "vitest run"
   },
   "dependencies": {
-    "@hookform/resolvers": "7.0.5",
+    "@hookform/resolvers": "7.0.6",
     "@tanstack/react-query": "5.107.1",
-    "next": "16.4.5",
+    "next": "16.4.6",
     "openapi-fetch": "0.17.0",
     "react": "19.3.1",
     "react-dom": "19.3.1",
-    "react-hook-form": "7.91.0",
+    "react-hook-form": "7.92.0",
     "server-only": "0.0.1",
     "zod": "4.6.7"
   },
@@ -30,7 +30,7 @@
     "@types/react-dom": "19.3.0",
     "dependency-cruiser": "18.7.2",
     "eslint": "9.39.5",
-    "eslint-config-next": "16.4.5",
+    "eslint-config-next": "16.4.6",
     "openapi-typescript": "7.13.0",
     "tailwindcss": "4.3.5",
     "typescript": "6.0.3",
