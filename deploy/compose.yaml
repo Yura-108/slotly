@@ -82,7 +82,7 @@ services:
   # No domain, so no real email: Mailpit catches what the API sends. Its UI only on this
   # machine; it also sits on edge, because a service only on `internal` cannot publish a port
   mailpit:
-    image: axllent/mailpit:v1.33.1
+    image: axllent/mailpit:v1.34.0
     environment:
       MP_SMTP_DISABLE_RDNS: 'true'
     ports:
